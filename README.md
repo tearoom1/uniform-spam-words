@@ -1,0 +1,76 @@
+# Spam Words Guard for Kirby Uniform
+
+This plugin implements a simple spam words guard for Martin Zurowietz' [`kirby-uniform`](https://github.com/mzur/kirby-uniform) plugin for Kirby.
+
+## Getting started
+
+Use one of the following methods to install & use `morja/uniform-spam-words`:
+
+
+### Git submodule
+
+If you know your way around Git, you can download this plugin as a [submodule](https://github.com/blog/2104-working-with-submodules):
+
+```text
+git submodule add https://github.com/morja/uniform-spam-words.git site/plugins/uniform-spam-words
+```
+
+
+### Composer
+
+```text
+composer require morja/uniform-spam-words
+```
+
+
+### Clone or download
+
+1. Clone or download this repository from github: https://github.com/morja/uniform-spam-words.git
+2. Unzip / Move the folder to `site/plugins`.
+
+
+## Usage
+
+### Controller
+
+To use the plugin, you have to enable the guard by calling `spamWordsGuard()` on the `$form` object.
+
+For more information, check out the `kirby-uniform` docs on its [magic methods](https://kirby-uniform.readthedocs.io/en/latest/guards/guards/#magic-methods):
+
+```php
+$form = new Form();
+
+if ($kirby->request()->is('POST')) {
+    # Call security
+    $form->spamWordsGuard();
+
+    # .. more code
+}
+```
+
+
+### Configuration
+
+You may change certain options from your `config.php` globally:
+
+```php
+return [
+    'morja.spamWordsGuard' => [
+        'addressThreshold' => 2, // the number of addresses like links and emails that are allowed, default 2
+        'spamThreshold' => 8, // the threshold for the spam score, default 8
+        'useWordLists' => true, // Use the default word lists, default true
+        'spamWords' => [ // define your own spam words, the key number defines the weight of the words
+            1 => ['promotion', 'free'], // weight 1, increases spam likelihood only a little
+            6 => ['seo', 'marketing'], // weight 6, increases spam likelihood a lot
+        ],
+    ],
+];
+```
+
+- The `addressThreshold` defines the number of addresses like links and emails that are allowed in the message. If the number of addresses exceeds this threshold, the form submission is blocked.
+- If no addresses can be found than the message is considered as safe and no spam words are checked.
+- The spam score is calculated by counting the occances of spam keywords in the message. The score is increased by the weight of the keyword. If the score exceeds the `spamThreshold`, the form submission is blocked.
+
+## License
+
+This plugin is licensed under the [MIT License](LICENSE), but **using Kirby in production** requires you to [buy a license](https://getkirby.com/buy).

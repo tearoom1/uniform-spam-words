@@ -1,0 +1,36 @@
+{
+  "name": "morja/uniform-spam-words",
+  "description": "Simple spam guard for 'mzur/kirby-uniform' & Kirby v4",
+  "type": "kirby-plugin",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": {
+    "name": "Mathis Koblin",
+    "email": "mail@tearoom.one",
+    "homepage": "https://www.tearoom.one",
+    "role": "Maintainer"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "require": {
+    "php": "~8.1.0 || ~8.2.0 || ~8.3.0",
+    "getkirby/composer-installer": "^1.1",
+    "mzur/kirby-uniform": "^5.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Uniform\\Guards\\SpamGuard\\": "src/guards/SpamGuard.php"
+    }
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "allow-plugins": {
+      "getkirby/composer-installer": true
+    }
+  }
+}
