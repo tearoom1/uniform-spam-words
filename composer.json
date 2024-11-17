@@ -1,5 +1,5 @@
 {
-  "name": "morja/uniform-spam-words",
+  "name": "tearoom1/uniform-spam-words",
   "description": "Simple spam guard for 'mzur/kirby-uniform' & Kirby",
   "type": "kirby-plugin",
   "license": "MIT",
