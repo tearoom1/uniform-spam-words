@@ -4,7 +4,7 @@ This plugin implements a simple spam words guard for Martin Zurowietz' [`kirby-u
 
 ## Getting started
 
-Use one of the following methods to install & use `morja/uniform-spam-words`:
+Use one of the following methods to install & use `tearoom1/uniform-spam-words`:
 
 
 ### Git submodule
@@ -12,20 +12,20 @@ Use one of the following methods to install & use `morja/uniform-spam-words`:
 If you know your way around Git, you can download this plugin as a [submodule](https://github.com/blog/2104-working-with-submodules):
 
 ```text
-git submodule add https://github.com/morja/uniform-spam-words.git site/plugins/uniform-spam-words
+git submodule add https://github.com/tearoom1/uniform-spam-words.git site/plugins/uniform-spam-words
 ```
 
 
 ### Composer
 
 ```text
-composer require morja/uniform-spam-words
+composer require tearoom1/uniform-spam-words
 ```
 
 
 ### Clone or download
 
-1. Clone or download this repository from github: https://github.com/morja/uniform-spam-words.git
+1. Clone or download this repository from github: https://github.com/tearoom1/uniform-spam-words.git
 2. Unzip / Move the folder to `site/plugins`.
 
 
@@ -55,7 +55,7 @@ You may change certain options from your `config.php` globally:
 
 ```php
 return [
-    'morja.spamWordsGuard' => [
+    'tearoom1.spamWordsGuard' => [
         'addressThreshold' => 2, // the number of addresses like links and emails that are allowed, default 2
         'spamThreshold' => 8, // the threshold for the spam score, default 8
         'useWordLists' => true, // Use the default word lists, default true
