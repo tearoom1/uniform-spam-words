@@ -2,7 +2,6 @@
   "name": "morja/uniform-spam-words",
   "description": "Simple spam guard for 'mzur/kirby-uniform' & Kirby v4",
   "type": "kirby-plugin",
-  "version": "1.0.0",
   "license": "MIT",
   "author": {
     "name": "Mathis Koblin",
