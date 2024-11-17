@@ -12,8 +12,8 @@ class SpamWordsGuard extends Guard
      */
     public function perform()
     {
-        $addressThreshold = $this->option('morja.spamWordsGuard.addressThreshold', 2);
-        $spamThreshold = $this->option('morja.spamWordsGuard.spamThreshold', 8);
+        $addressThreshold = $this->option('tearoom1.uniform-spam-words.addressThreshold', 2);
+        $spamThreshold = $this->option('tearoom1.uniform-spam-words.spamThreshold', 8);
 
         $message = App::instance()->request()->body()->get('message');
 
@@ -30,7 +30,7 @@ class SpamWordsGuard extends Guard
 
         $spamWords = [];
 
-        if ($this->option('morja.spamWordsGuard.useWordLists', true)) {
+        if ($this->option('tearoom1.uniform-spam-words.useWordLists', true)) {
             // load spam words from all files in directory lists
             foreach (glob(__DIR__ . '/lists/*.txt') as $file) {
                 // extract number from file name _n.txt
@@ -43,7 +43,7 @@ class SpamWordsGuard extends Guard
         }
 
         // load spam words from config
-        $spamWordsMap = $this->option('morja.spamWordsGuard.spamWords', []);
+        $spamWordsMap = $this->option('tearoom1.uniform-spam-words.spamWords', []);
         foreach ($spamWordsMap as $weight => $words) {
             foreach ($words as $word) {
                 $spamWords[strtolower($word)] = $weight;
@@ -57,9 +57,9 @@ class SpamWordsGuard extends Guard
 
         if ($addressCount > $addressThreshold * 2 ||
             $addressCount + $spamCount > $spamThreshold) {
-            $this->reject(t('morja.uniform-spam-words.rejected'));
+            $this->reject(t('tearoom1.uniform-spam-words.rejected'));
         } else if ($addressCount > $addressThreshold) {
-            $this->reject(t('morja.uniform-spam-words.soft-reject'));
+            $this->reject(t('tearoom1.uniform-spam-words.soft-reject'));
         }
     }
 }

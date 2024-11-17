@@ -55,7 +55,7 @@ You may change certain options from your `config.php` globally:
 
 ```php
 return [
-    'tearoom1.spamWordsGuard' => [
+    'tearoom1.uniform-spam-words' => [
         'addressThreshold' => 2, // the number of addresses like links and emails that are allowed, default 2
         'spamThreshold' => 8, // the threshold for the spam score, default 8
         'useWordLists' => true, // Use the default word lists, default true

@@ -149,10 +149,10 @@ class SpamWordsGuardTest extends TestCase
     public function perform(): void
     {
         $guard = new SpamWordsGuard(new Form, [
-                'morja.spamWordsGuard.spamThreshold' => 8,
-                'morja.spamWordsGuard.addressThreshold' => 2,
-                'morja.spamWordsGuard.useWordLists' => true,
-                'morja.spamWordsGuard.spamWords' => [
+                'tearoom1.uniform-spam-words.spamThreshold' => 8,
+                'tearoom1.uniform-spam-words.addressThreshold' => 2,
+                'tearoom1.uniform-spam-words.useWordLists' => true,
+                'tearoom1.uniform-spam-words.spamWords' => [
                     1 => ['promotion', 'free'],
                     6 => ['seo', 'marketing'],
                     9 => ['spam key'],
