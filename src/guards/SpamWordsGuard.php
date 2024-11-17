@@ -55,12 +55,11 @@ class SpamWordsGuard extends Guard
             $spamCount += preg_match_all('/\b' . $word . '\b/i', $message) * $weight;
         }
 
-        if ($addressCount > $addressThreshold * 2) {
-            $this->reject("Message rejected as spam");
-        } else if ($addressCount + $spamCount > $spamThreshold) {
-            $this->reject("Message rejected as spam");
+        if ($addressCount > $addressThreshold * 2 ||
+            $addressCount + $spamCount > $spamThreshold) {
+            $this->reject(t('morja.uniform-spam-words.rejected'));
         } else if ($addressCount > $addressThreshold) {
-            $this->reject("Too many links or emails in the message body, please send an email instead");
+            $this->reject(t('morja.uniform-spam-words.soft-reject'));
         }
     }
 }

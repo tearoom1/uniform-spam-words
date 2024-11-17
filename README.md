@@ -68,8 +68,8 @@ return [
 ```
 
 - The `addressThreshold` defines the number of addresses like links and emails that are allowed in the message. If the number of addresses exceeds this threshold, the form submission is blocked.
-- If no addresses can be found than the message is considered as safe and no spam words are checked.
-- The spam score is calculated by counting the occances of spam keywords in the message. The score is increased by the weight of the keyword. If the score exceeds the `spamThreshold`, the form submission is blocked.
+- If no addresses can be found, then the message is considered as safe and no spam words are checked.
+- The spam score is calculated by counting the occurrences of spam keywords in the message. The score is increased by the weight of the keyword. If the score exceeds the `spamThreshold`, the form submission is blocked.
 
 ## License
 
