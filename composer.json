@@ -1,6 +1,6 @@
 {
   "name": "morja/uniform-spam-words",
-  "description": "Simple spam guard for 'mzur/kirby-uniform' & Kirby v4",
+  "description": "Simple spam guard for 'mzur/kirby-uniform' & Kirby",
   "type": "kirby-plugin",
   "license": "MIT",
   "author": {
