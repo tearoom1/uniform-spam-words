@@ -1,6 +1,6 @@
 <?php
 
-namespace tests\Guards;
+namespace tests\guards;
 
 load([
     'Uniform\\Guards\\SpamWordsGuard' => '../../src/guards/SpamWordsGuard.php',

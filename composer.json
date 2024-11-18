@@ -3,7 +3,10 @@
   "description": "Simple spam guard for 'mzur/kirby-uniform' & Kirby",
   "type": "kirby-plugin",
   "license": "MIT",
-  "keywords": ["kirby", "form"],
+  "keywords": [
+    "kirby",
+    "form"
+  ],
   "authors": [
     {
       "name": "Mathis Koblin",
@@ -34,5 +37,9 @@
     "allow-plugins": {
       "getkirby/composer-installer": true
     }
+  },
+  "scripts": {
+    "dist": "composer install --no-dev --optimize-autoloader",
+    "test": "phpunit --bootstrap ./tests/bootstrap.php --testdox ./tests/suites"
   }
 }
