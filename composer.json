@@ -37,6 +37,7 @@
   },
   "scripts": {
     "dist": "composer install --no-dev --optimize-autoloader",
-    "test": "vendor/bin/phpunit"
+    "test": "vendor/bin/phpunit",
+    "test-local": "vendor/bin/phpunit --testdox"
   }
 }
