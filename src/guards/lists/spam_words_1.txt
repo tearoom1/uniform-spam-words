@@ -8,6 +8,7 @@ Beneficiary
 Billing
 Blog
 Bonus
+Brochure
 Cards accepted
 Cash
 Certified
