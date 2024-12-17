@@ -50,9 +50,15 @@ class SpamWordsGuard extends Guard
             }
         }
 
+//        $matches = [];
         $spamCount = 0;
         foreach ($spamWords as $word => $weight) {
-            $spamCount += preg_match_all('/\b' . $word . '\b/i', $message) * $weight;
+            $preg_match_all = preg_match_all('/\b' . preg_quote ($word) . '\b/i', $message);
+            if ($preg_match_all === 0) {
+                continue;
+            }
+            $spamCount += $preg_match_all * $weight;
+//            $matches[$word] = $weight;
         }
 
         if ($addressCount > $addressThreshold * 2 ||
