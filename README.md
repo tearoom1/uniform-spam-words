@@ -51,7 +51,9 @@ if ($kirby->request()->is('POST')) {
 
 ### Configuration
 
-You may change certain options from your `config.php` globally:
+The plugin comes with a few lists of words and phrases that are used to build a spam score. Thus the plugin should work out of the box. 
+
+You may change certain options in your `config.php` globally:
 
 ```php
 return [
