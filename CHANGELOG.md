@@ -1,3 +1,10 @@
+## [1.1.7](https://github.com/tearoom1/uniform-spam-words/compare/v1.1.6...v1.1.7) (2025-07-21)
+
+
+### Bug Fixes
+
+* update composer ([f5a3d96](https://github.com/tearoom1/uniform-spam-words/commit/f5a3d96c5c90c0b61a3c2fa87ceaa40099363707))
+
 ## [1.1.6](https://github.com/tearoom1/uniform-spam-words/compare/v1.1.5...v1.1.6) (2025-07-21)
 
 
