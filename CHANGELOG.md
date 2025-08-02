@@ -1,3 +1,10 @@
+## [1.1.8](https://github.com/tearoom1/uniform-spam-words/compare/v1.1.7...v1.1.8) (2025-08-02)
+
+
+### Bug Fixes
+
+* reverted to use class loading in index.php ([3c16c89](https://github.com/tearoom1/uniform-spam-words/commit/3c16c89dc1b4236bd707a5b5dd27b17f92596073))
+
 ## [1.1.7](https://github.com/tearoom1/uniform-spam-words/compare/v1.1.6...v1.1.7) (2025-07-21)
 
 
@@ -25,11 +32,4 @@
 ### Bug Fixes
 
 * fixed versions ([d586f16](https://github.com/tearoom1/uniform-spam-words/commit/d586f16e06c7731e7008c892cd127546b7135921))
-
-## [0.1.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.1.2...v0.1.0) (2025-07-21)
-
-
-### Bug Fixes
-
-* Added conventional commits. ([b318ea9](https://github.com/tearoom1/uniform-spam-words/commit/b318ea95b7419776cce5191b9e4c41d6b2cc73fb))
 
