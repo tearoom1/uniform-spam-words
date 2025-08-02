@@ -16,6 +16,10 @@
       "role": "Maintainer"
     }
   ],
+  "support": {
+    "docs": "https://github.com/tearoom1/uniform-spam-words/blob/main/README.md",
+    "source": "https://github.com/tearoom1/uniform-spam-words"
+  },
   "require": {
     "getkirby/composer-installer": "^1.1",
     "mzur/kirby-uniform": "^5.0"
