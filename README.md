@@ -51,7 +51,7 @@ if ($kirby->request()->is('POST')) {
 
 ### Configuration
 
-The plugin comes with a few lists of words and phrases that are used to build a spam score. Thus the plugin should work out of the box. 
+The plugin comes with a few lists of words and phrases that are used to build a spam score. Thus the plugin should work out of the box.
 
 You may change certain options in your `config.php` globally:
 
@@ -65,6 +65,10 @@ return [
             1 => ['promotion', 'free'], // weight 1, increases spam likelihood only a little
             6 => ['seo', 'marketing'], // weight 6, increases spam likelihood a lot
         ],
+        'silentReject' => false, // Reject spam without showing error messages (returns a space as error message), default false
+        // Custom error messages for single-language sites
+        'rejected' => 'Message rejected as spam.',
+        'soft-reject' => 'Too many links or emails in the message body, please send an email instead.',
     ],
 ];
 ```
@@ -72,6 +76,31 @@ return [
 - The `addressThreshold` defines the number of addresses like links and emails that are allowed in the message. If the number of addresses exceeds this threshold, the form submission is blocked.
 - If no addresses can be found, then the message is considered as safe and no spam words are checked.
 - The spam score is calculated by counting the occurrences of spam keywords in the message. The score is increased by the weight of the keyword. If the score exceeds the `spamThreshold`, the form submission is blocked.
+- Set `silentReject` to `true` to reject spam submissions without displaying any of the configured error messages. I does return a space character as error message though.
+
+### Custom Error Messages
+
+**Single-language sites:** Define custom messages in `config.php`:
+
+```php
+'tearoom1.uniform-spam-words' => [
+    'rejected' => 'Your custom spam rejection message',
+    'soft-reject' => 'Your custom soft rejection message',
+],
+```
+
+**Multi-language sites:** Define translations in your language files (`site/languages/*.php`):
+
+```php
+return [
+    'code' => 'en',
+    'name' => 'English',
+    'translations' => [
+        'tearoom1.uniform-spam-words.rejected' => 'Your custom spam rejection message',
+        'tearoom1.uniform-spam-words.soft-reject' => 'Your custom soft rejection message',
+    ],
+];
+```
 
 ## License
 

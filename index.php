@@ -16,10 +16,14 @@ load([
 
 use Kirby\Cms\App as Kirby;
 
+$pluginOptions = [];
 
-Kirby::plugin('tearoom1/uniform-spam-words', [
-    'translations' => [
+// Load translations only if languages are enabled
+if (Kirby::instance()->multilang()) {
+    $pluginOptions['translations'] = [
         'en' => require_once __DIR__ . '/i18n/en.php',
         'de' => require_once __DIR__ . '/i18n/de.php',
-    ],
-]);
+    ];
+}
+
+Kirby::plugin('tearoom1/uniform-spam-words', $pluginOptions);

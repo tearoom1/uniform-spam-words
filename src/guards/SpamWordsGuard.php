@@ -12,8 +12,9 @@ class SpamWordsGuard extends Guard
      */
     public function perform()
     {
-        $addressThreshold = $this->option('tearoom1.uniform-spam-words.addressThreshold', 2);
-        $spamThreshold = $this->option('tearoom1.uniform-spam-words.spamThreshold', 8);
+        $addressThreshold = option('tearoom1.uniform-spam-words.addressThreshold', 2);
+        $spamThreshold = option('tearoom1.uniform-spam-words.spamThreshold', 8);
+        $silentReject = option('tearoom1.uniform-spam-words.silentReject', false);
 
         $message = App::instance()->request()->body()->get('message');
 
@@ -30,7 +31,7 @@ class SpamWordsGuard extends Guard
 
         $spamWords = [];
 
-        if ($this->option('tearoom1.uniform-spam-words.useWordLists', true)) {
+        if (option('tearoom1.uniform-spam-words.useWordLists', true)) {
             // load spam words from all files in directory lists
             foreach (glob(__DIR__ . '/lists/*.txt') as $file) {
                 // extract number from file name _n.txt
@@ -43,29 +44,54 @@ class SpamWordsGuard extends Guard
         }
 
         // load spam words from config
-        $spamWordsMap = $this->option('tearoom1.uniform-spam-words.spamWords', []);
+        $spamWordsMap = option('tearoom1.uniform-spam-words.spamWords', []);
         foreach ($spamWordsMap as $weight => $words) {
             foreach ($words as $word) {
                 $spamWords[strtolower($word)] = $weight;
             }
         }
 
-//        $matches = [];
+        //        $matches = [];
         $spamCount = 0;
         foreach ($spamWords as $word => $weight) {
-            $preg_match_all = preg_match_all('/\b' . preg_quote ($word) . '\b/i', $message);
+            $preg_match_all = preg_match_all('/\b' . preg_quote($word) . '\b/i', $message);
             if ($preg_match_all === 0) {
                 continue;
             }
             $spamCount += $preg_match_all * $weight;
-//            $matches[$word] = $weight;
+            //            $matches[$word] = $weight;
         }
 
         if ($addressCount > $addressThreshold * 2 ||
             $addressCount + $spamCount > $spamThreshold) {
-            $this->reject(t('tearoom1.uniform-spam-words.rejected'));
+            $message = $silentReject ? ' ' : $this->getMessage('rejected');
+            $this->reject($message);
         } else if ($addressCount > $addressThreshold) {
-            $this->reject(t('tearoom1.uniform-spam-words.soft-reject'));
+            $message = $silentReject ? ' ' : $this->getMessage('soft-reject');
+            $this->reject($message);
         }
+    }
+
+    /**
+     * Get translated message with fallback support for non-language sites
+     */
+    private function getMessage(string $key): string
+    {
+        $translationKey = 'tearoom1.uniform-spam-words.' . $key;
+
+        // Try to get translation from Kirby
+        $message = t($translationKey);
+        // If translation exists and is not null or the key itself, return it
+        if ($message !== null && $message !== $translationKey) {
+            return $message;
+        }
+
+        // Fallback messages for single-language sites
+        $fallbacks = [
+            'rejected' => option('tearoom1.uniform-spam-words.rejected', 'Message rejected as spam.'),
+            'soft-reject' => option('tearoom1.uniform-spam-words.soft-reject', 'Too many links or emails in the message body, please send an email instead.')
+        ];
+
+        return $fallbacks[$key] ?? '';
     }
 }
