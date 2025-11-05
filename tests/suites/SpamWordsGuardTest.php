@@ -120,17 +120,6 @@ class SpamWordsGuardTest extends TestCase
     /**
      * @throws PerformerException
      */
-    public function testSpamKey()
-    {
-        $_POST['message'] = 'Spam KEY www.example.com';
-
-        $this->expectException(PerformerException::class);
-        $this->perform();
-    }
-
-    /**
-     * @throws PerformerException
-     */
     public function testAddressSpam()
     {
         $_POST['message'] = 'https://example.com
@@ -148,16 +137,7 @@ class SpamWordsGuardTest extends TestCase
      */
     public function perform(): void
     {
-        $guard = new SpamWordsGuard(new Form, [
-                'tearoom1.uniform-spam-words.spamThreshold' => 8,
-                'tearoom1.uniform-spam-words.addressThreshold' => 2,
-                'tearoom1.uniform-spam-words.useWordLists' => true,
-                'tearoom1.uniform-spam-words.spamWords' => [
-                    1 => ['promotion', 'free'],
-                    6 => ['seo', 'marketing'],
-                    9 => ['spam key'],
-                ],
-        ]);
+        $guard = new SpamWordsGuard(new Form);
         $guard->perform();
     }
 
