@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/tearoom1/uniform-spam-words/compare/v1.2.0...v1.2.1) (2025-11-05)
+
+
+### Bug Fixes
+
+* fixed tests ([1a45f1f](https://github.com/tearoom1/uniform-spam-words/commit/1a45f1fba255d3470afba9fef7d561efaa3c37ce))
+
 ## [1.2.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.1.8...v1.2.0) (2025-11-05)
 
 
@@ -25,11 +32,4 @@
 ### Bug Fixes
 
 * allow version in composer ([75ee5f4](https://github.com/tearoom1/uniform-spam-words/commit/75ee5f40492234caab153f62cb58de4c151f7ccf))
-
-## [1.1.5](https://github.com/tearoom1/uniform-spam-words/compare/v1.1.4...v1.1.5) (2025-07-21)
-
-
-### Bug Fixes
-
-* updated composer ([42afc93](https://github.com/tearoom1/uniform-spam-words/commit/42afc9315e2846cda5de5fb7ce1460b8c09ce9b7))
 
