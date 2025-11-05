@@ -1,3 +1,10 @@
+## [1.2.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.1.8...v1.2.0) (2025-11-05)
+
+
+### Features
+
+* added fallback and custom error messages on single language sites [#2](https://github.com/tearoom1/uniform-spam-words/issues/2) [#1](https://github.com/tearoom1/uniform-spam-words/issues/1) ([1de7247](https://github.com/tearoom1/uniform-spam-words/commit/1de7247b4ce68d83c87d52dcb95ba72d39a9bb81))
+
 ## [1.1.8](https://github.com/tearoom1/uniform-spam-words/compare/v1.1.7...v1.1.8) (2025-08-02)
 
 
@@ -25,11 +32,4 @@
 ### Bug Fixes
 
 * updated composer ([42afc93](https://github.com/tearoom1/uniform-spam-words/commit/42afc9315e2846cda5de5fb7ce1460b8c09ce9b7))
-
-## [1.1.4](https://github.com/tearoom1/uniform-spam-words/compare/v0.1.0...v1.1.4) (2025-07-21)
-
-
-### Bug Fixes
-
-* fixed versions ([d586f16](https://github.com/tearoom1/uniform-spam-words/commit/d586f16e06c7731e7008c892cd127546b7135921))
 
