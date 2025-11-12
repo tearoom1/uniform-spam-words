@@ -91,7 +91,13 @@ class SpamWordsGuardTest extends TestCase
     {
         $_POST['message'] = 'Seo seo promotion free';
 
-        $this->perform();
+        $this->performWithOptions([
+            'spamWords' => [
+                1 => ['promotion', 'free'],
+                6 => ['seo', 'marketing'],
+            ],
+        ]);
+
         $this->assertTrue(true);
     }
 

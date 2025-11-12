@@ -12,34 +12,37 @@ class SpamWordsGuard extends Guard
      */
     public function perform()
     {
+        if (!option('tearoom1.uniform-spam-words.enabled', true)) {
+            return;
+        }
 
         $message = App::instance()->request()->body()->get('message');
 
         // Check regex pattern match
-        $regexMatch = option('tearoom1.uniform-spam-words.regexMatch', '');
-        if (!empty($regexMatch) && !preg_match($regexMatch, $message)) {
+        $regexMatch = option('tearoom1.uniform-spam-words.regexMatch', null);
+        if ($regexMatch !== null && !preg_match($regexMatch, $message)) {
             $this->reject($this->getMessage('regex-mismatch'));
         }
 
         // Check message length
-        $minLength = option('tearoom1.uniform-spam-words.minLength', 0);
-        $maxLength = option('tearoom1.uniform-spam-words.maxLength', 0);
+        $minLength = option('tearoom1.uniform-spam-words.minLength', null);
+        $maxLength = option('tearoom1.uniform-spam-words.maxLength', null);
         $messageLength = mb_strlen($message);
-        if ($minLength > 0 && $messageLength < $minLength) {
+        if ($minLength !== null && $messageLength < $minLength) {
             $this->reject($this->getMessage('too-short'));
         }
-        if ($maxLength > 0 && $messageLength > $maxLength) {
+        if ($maxLength !== null && $messageLength > $maxLength) {
             $this->reject($this->getMessage('too-long'));
         }
 
         // Check word count
-        $minWords = option('tearoom1.uniform-spam-words.minWords', 0);
-        $maxWords = option('tearoom1.uniform-spam-words.maxWords', 0);
+        $minWords = option('tearoom1.uniform-spam-words.minWords', null);
+        $maxWords = option('tearoom1.uniform-spam-words.maxWords', null);
         $wordCount = str_word_count($message);
-        if ($minWords > 0 && $wordCount < $minWords) {
+        if ($minWords !== null && $wordCount < $minWords) {
             $this->reject($this->getMessage('too-few-words'));
         }
-        if ($maxWords > 0 && $wordCount > $maxWords) {
+        if ($maxWords !== null && $wordCount > $maxWords) {
             $this->reject($this->getMessage('too-many-words'));
         }
 

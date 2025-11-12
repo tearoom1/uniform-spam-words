@@ -53,19 +53,20 @@ if ($kirby->request()->is('POST')) {
 
 The plugin comes with a few lists of words and phrases that are used to build a spam score. Thus the plugin should work out of the box.
 
-You may change certain options in your `config.php` globally:
+You may change certain options in your `config.php`, e.g.:
 
 ```php
 return [
     'tearoom1.uniform-spam-words' => [
+        'enabled' => true, // enable the plugin, default true
+        'minAddresses' => 0, // the minimum number of addresses like links and emails that are needed to check for spam, default 1
         'addressThreshold' => 2, // the number of addresses like links and emails that are allowed, default 2
         'spamThreshold' => 8, // the threshold for the spam score, default 8
-        'minAddresses' => 1, // the minimum number of addresses like links and emails that are needed to check for spam, default 1
-        'regexMatch' => '', // the regex pattern to match against the message, default empty string
-        'minLength' => 0, // the minimum length of the message, default 0
-        'maxLength' => 0, // the maximum length of the message, default 0
-        'minWords' => 0, // the minimum number of words in the message, default 0
-        'maxWords' => 0, // the maximum number of words in the message, default 0
+        'regexMatch' => null, // the regex pattern to match against the message, default null (disabled)
+        'minLength' => 10, // the minimum length of the message, default null (disabled)
+        'maxLength' => 500, // the maximum length of the message, default null (disabled)
+        'minWords' => 3, // the minimum number of words in the message, default null (disabled)
+        'maxWords' => null, // the maximum number of words in the message, default null (disabled)
         'useWordLists' => true, // Use the default word lists, default true
         'spamWords' => [ // define your own spam words, the key number defines the weight of the words
             1 => ['promotion', 'free'], // weight 1, increases spam likelihood only a little
@@ -76,18 +77,25 @@ return [
 ];
 ```
 
-**Validation Options:**
-- `regexMatch` - Optional regex pattern that the message must match (e.g., `/^[a-zA-Z0-9\s]+$/` to allow only alphanumeric characters)
-- `minLength` / `maxLength` - Enforce minimum/maximum character length (0 = disabled)
-- `minWords` / `maxWords` - Enforce minimum/maximum word count (0 = disabled)
+### Configuration Options
 
-**Spam Detection Options:**
-- `addressThreshold` - Number of addresses (links/emails) allowed before triggering spam check (default: 2)
-- `minAddresses` - Minimum addresses required to trigger spam word checking (default: 1)
-- `spamThreshold` - Spam score threshold for rejection (default: 8)
-- `useWordLists` - Use built-in spam word lists (default: true)
-- `spamWords` - Custom spam words with weights (higher weight = stronger spam signal)
-- `silentReject` - Reject without showing error messages, returns a space character (default: false)
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| **Validation Options** ||||
+| `regexMatch` | string\|null | `null` | Optional regex pattern that the message must match (e.g., `/^[a-zA-Z0-9\s]+$/`). Set to `null` to disable. |
+| `minLength` | int\|null | `null` | Minimum character length required for the message. Set to `null` to disable. |
+| `maxLength` | int\|null | `null` | Maximum character length allowed for the message. Set to `null` to disable. |
+| `minWords` | int\|null | `null` | Minimum word count required for the message. Set to `null` to disable. |
+| `maxWords` | int\|null | `null` | Maximum word count allowed for the message. Set to `null` to disable. |
+| **Spam Detection Options** ||||
+| `minAddresses` | int | `0` | Minimum number of addresses required to trigger spam word checking. Set to `0` to always check. |
+| `addressThreshold` | int | `2` | Number of addresses (links/emails) allowed before triggering spam check. |
+| `spamThreshold` | int | `8` | Spam score threshold for rejection. Higher values are more lenient. |
+| `useWordLists` | bool | `true` | Use built-in spam word lists. Set to `false` to only use custom words. |
+| `spamWords` | array | `[]` | Custom spam words with weights. Format: `[weight => ['word1', 'word2']]`. Higher weight = stronger spam signal. |
+| **Other Options** ||||
+| `enabled` | bool | `true` | Enable or disable the plugin globally. |
+| `silentReject` | bool | `false` | Reject spam without showing error messages (returns a space character). |
 
 **How it works:**
 1. Validates regex pattern (if configured)
