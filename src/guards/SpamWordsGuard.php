@@ -30,10 +30,16 @@ class SpamWordsGuard extends Guard
         $maxLength = option('tearoom1.uniform-spam-words.maxLength', null);
         $messageLength = mb_strlen($message);
         if ($minLength !== null && $messageLength < $minLength) {
-            $this->rejectWithLog('too-short', compact('messageLength', 'minLength'));
+            $this->rejectWithLog('too-short', [
+                'message_length' => $messageLength,
+                'min_length' => $minLength,
+            ]);
         }
         if ($maxLength !== null && $messageLength > $maxLength) {
-            $this->rejectWithLog('too-long', compact('messageLength', 'maxLength'));
+            $this->rejectWithLog('too-long', [
+                'message_length' => $messageLength,
+                'max_length' => $maxLength,
+            ]);
         }
 
         // Check word count
@@ -41,17 +47,28 @@ class SpamWordsGuard extends Guard
         $maxWords = option('tearoom1.uniform-spam-words.maxWords', null);
         $wordCount = str_word_count($message);
         if ($minWords !== null && $wordCount < $minWords) {
-            $this->rejectWithLog('too-few-words', compact('messageLength', 'wordCount', 'minWords'));
+            $this->rejectWithLog('too-few-words', [
+                'message_length' => $messageLength,
+                'word_count' => $wordCount,
+                'min_words' => $minWords,
+            ]);
         }
         if ($maxWords !== null && $wordCount > $maxWords) {
-            $this->rejectWithLog('too-many-words', compact('messageLength', 'wordCount', 'maxWords'));
+            $this->rejectWithLog('too-many-words', [
+                'message_length' => $messageLength,
+                'word_count' => $wordCount,
+                'max_words' => $maxWords,
+            ]);
         }
 
         // Run custom validator if provided
         $customValidator = option('tearoom1.uniform-spam-words.customValidator', null);
         if ($customValidator !== null && is_callable($customValidator)) {
             if ($customValidator($message) === false) {
-                $this->rejectWithLog('custom-validation-failed', compact('messageLength', 'wordCount'));
+                $this->rejectWithLog('custom-validation-failed', [
+                    'message_length' => $messageLength,
+                    'word_count' => $wordCount,
+                ]);
             }
         }
 
@@ -114,8 +131,16 @@ class SpamWordsGuard extends Guard
         $isSpam = $addressCount > $addressThreshold * 2 || $totalScore > $spamThreshold;
         $isSoftReject = !$isSpam && $addressCount > $addressThreshold;
 
-        $spamData = compact('messageLength', 'wordCount', 'addressCount', 'spamCount', 'totalScore') + [
-            'thresholds' => compact('spamThreshold', 'addressThreshold')
+        $spamData = [
+            'message_length' => $messageLength,
+            'word_count' => $wordCount,
+            'address_count' => $addressCount,
+            'spam_score' => $spamCount,
+            'total_score' => $totalScore,
+            'thresholds' => [
+                'spam' => $spamThreshold,
+                'address' => $addressThreshold,
+            ],
         ];
 
         if ($isSpam) {
