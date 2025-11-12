@@ -4,7 +4,7 @@
   "license": "MIT",
   "type": "kirby-plugin",
   "homepage": "https://github.com/tearoom1/uniform-spam-words",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "keywords": [
     "kirby",
     "form"
