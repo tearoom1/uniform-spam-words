@@ -100,8 +100,8 @@ return [
 | **Other Options** ||         ||
 | `enabled` | bool | `true`  | Enable or disable the plugin globally. |
 | `silentReject` | bool | `false` | Reject spam without showing error messages (returns a space character). |
-| `debug` | bool | `false` | Enable debug logging to track spam scores and help tune thresholds. |
-| `debugLogFile` | string\|null | `null`  | Path to debug log file. Defaults to Kirby's log directory if `null`. |
+| `debug` | bool | `false` | Enable debug logging. Logs ALL validation attempts (both passed and rejected) with reason, metrics, anonymized IP, and timestamp. |
+| `debugLogFile` | string\|null | `null`  | Path to debug log file. Defaults to `logs/uniform-spam-words.log` in Kirby's log directory if `null`. |
 
 **How it works:**
 1. Validates regex pattern (if configured)
@@ -139,15 +139,6 @@ return [
 ];
 ```
 
-#### Debug Mode for Tuning
-```php
-return [
-    'tearoom1.uniform-spam-words' => [
-        'debug' => true,
-        'debugLogFile' => '/path/to/spam-debug.log',
-    ],
-];
-```
 
 #### Custom Validation with Industry-Specific Terms
 ```php
@@ -165,6 +156,27 @@ return [
     ],
 ];
 ```
+
+### Debug Mode for Tuning
+```php
+return [
+    'tearoom1.uniform-spam-words' => [
+        'debug' => true,
+        'debugLogFile' => '/path/to/spam-debug.log',
+    ],
+];
+```
+
+**Debug logging captures:**
+- ✅ All rejections (regex, length, words, custom validator, spam detection)
+- ✅ Successful validations (messages that pass all checks)
+- ✅ Rejection reason and relevant metrics for each attempt
+- ✅ Anonymized IP address (GDPR compliant) and timestamp for tracking
+
+**IP Anonymization (GDPR Compliant):**
+- IPv4: Last octet masked (e.g., `192.168.1.123` → `192.168.1.0`)
+- IPv6: Last 4 segments masked (e.g., `2001:db8:85a3:8d3:1319:8a2e:370:7348` → `2001:db8:85a3:8d3:0000:0000:0000:0000`)
+
 
 ### Custom Error Messages
 

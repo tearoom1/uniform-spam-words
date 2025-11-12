@@ -22,7 +22,7 @@ class SpamWordsGuard extends Guard
         // Check regex pattern match
         $regexMatch = option('tearoom1.uniform-spam-words.regexMatch', null);
         if ($regexMatch !== null && !preg_match($regexMatch, $message)) {
-            $this->reject($this->getMessage('regex-mismatch'));
+            $this->rejectWithLog('regex-mismatch', ['message_length' => mb_strlen($message)]);
         }
 
         // Check message length
@@ -30,10 +30,10 @@ class SpamWordsGuard extends Guard
         $maxLength = option('tearoom1.uniform-spam-words.maxLength', null);
         $messageLength = mb_strlen($message);
         if ($minLength !== null && $messageLength < $minLength) {
-            $this->reject($this->getMessage('too-short'));
+            $this->rejectWithLog('too-short', compact('messageLength', 'minLength'));
         }
         if ($maxLength !== null && $messageLength > $maxLength) {
-            $this->reject($this->getMessage('too-long'));
+            $this->rejectWithLog('too-long', compact('messageLength', 'maxLength'));
         }
 
         // Check word count
@@ -41,18 +41,17 @@ class SpamWordsGuard extends Guard
         $maxWords = option('tearoom1.uniform-spam-words.maxWords', null);
         $wordCount = str_word_count($message);
         if ($minWords !== null && $wordCount < $minWords) {
-            $this->reject($this->getMessage('too-few-words'));
+            $this->rejectWithLog('too-few-words', compact('messageLength', 'wordCount', 'minWords'));
         }
         if ($maxWords !== null && $wordCount > $maxWords) {
-            $this->reject($this->getMessage('too-many-words'));
+            $this->rejectWithLog('too-many-words', compact('messageLength', 'wordCount', 'maxWords'));
         }
 
         // Run custom validator if provided
         $customValidator = option('tearoom1.uniform-spam-words.customValidator', null);
         if ($customValidator !== null && is_callable($customValidator)) {
-            $result = $customValidator($message);
-            if ($result === false) {
-                $this->reject($this->getMessage('custom-validation-failed'));
+            if ($customValidator($message) === false) {
+                $this->rejectWithLog('custom-validation-failed', compact('messageLength', 'wordCount'));
             }
         }
 
@@ -115,28 +114,18 @@ class SpamWordsGuard extends Guard
         $isSpam = $addressCount > $addressThreshold * 2 || $totalScore > $spamThreshold;
         $isSoftReject = !$isSpam && $addressCount > $addressThreshold;
 
-        // Debug logging
-        if (option('tearoom1.uniform-spam-words.debug', false)) {
-            $this->logDebug([
-                'message_length' => $messageLength,
-                'word_count' => $wordCount,
-                'address_count' => $addressCount,
-                'spam_score' => $spamCount,
-                'total_score' => $totalScore,
-                'is_spam' => $isSpam,
-                'is_soft_reject' => $isSoftReject,
-                'thresholds' => [
-                    'spam' => $spamThreshold,
-                    'address' => $addressThreshold,
-                ],
-            ]);
-        }
+        $spamData = compact('messageLength', 'wordCount', 'addressCount', 'spamCount', 'totalScore') + [
+            'thresholds' => compact('spamThreshold', 'addressThreshold')
+        ];
 
         if ($isSpam) {
-            $this->reject($this->getMessage('rejected'));
-        } else if ($isSoftReject) {
-            $this->reject($this->getMessage('soft-reject'));
+            $this->rejectWithLog('rejected', $spamData);
+        } elseif ($isSoftReject) {
+            $this->rejectWithLog('soft-reject', $spamData);
         }
+
+        // Log successful validation
+        $this->log('passed', $spamData);
     }
 
     /**
@@ -178,20 +167,61 @@ class SpamWordsGuard extends Guard
     }
 
     /**
+     * Reject with optional debug logging
+     */
+    private function rejectWithLog(string $reason, array $data = []): void
+    {
+        $this->log('rejected', $data, $reason);
+        $this->reject($this->getMessage($reason));
+    }
+
+    /**
      * Log debug information
      */
-    private function logDebug(array $data): void
+    private function log(string $status, array $data = [], ?string $reason = null): void
     {
-        $logFile = option('tearoom1.uniform-spam-words.debugLogFile', null);
-        if ($logFile === null) {
-            // Default to Kirby's log directory
-            $logFile = App::instance()->root('logs') . '/uniform-spam-words.log';
+        if (!option('tearoom1.uniform-spam-words.debug', false)) {
+            return;
         }
 
+        $logData = ['status' => $status] + $data;
+        if ($reason) {
+            $logData['reason'] = $reason;
+        }
+
+        $logFile = option('tearoom1.uniform-spam-words.debugLogFile') 
+            ?? App::instance()->root('logs') . '/uniform-spam-words.log';
+
         $timestamp = date('Y-m-d H:i:s');
-        $ip = App::instance()->visitor()->ip();
-        $logEntry = "[{$timestamp}] IP: {$ip}\n" . json_encode($data, JSON_PRETTY_PRINT) . "\n\n";
+        $ip = $this->anonymizeIp(App::instance()->visitor()->ip());
+        $logEntry = "[{$timestamp}] IP: {$ip}\n" . json_encode($logData, JSON_PRETTY_PRINT) . "\n\n";
 
         F::append($logFile, $logEntry);
+    }
+
+    /**
+     * Anonymize IP address for GDPR compliance
+     */
+    private function anonymizeIp(string $ip): string
+    {
+        // Check if it's an IPv6 address
+        if (strpos($ip, ':') !== false) {
+            // IPv6: Keep first 4 segments, mask the rest
+            $parts = explode(':', $ip);
+            if (count($parts) > 4) {
+                return implode(':', array_slice($parts, 0, 4)) . ':0000:0000:0000:0000';
+            }
+            return $ip;
+        }
+
+        // IPv4: Mask last octet
+        $parts = explode('.', $ip);
+        if (count($parts) === 4) {
+            $parts[3] = '0';
+            return implode('.', $parts);
+        }
+
+        // Return as-is if format is unexpected
+        return $ip;
     }
 }
