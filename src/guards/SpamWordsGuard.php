@@ -107,12 +107,16 @@ class SpamWordsGuard extends Guard
             return ' ';
         }
 
-        $translationKey = 'tearoom1.uniform-spam-words.' . $key;
-
         // Try to get translation from Kirby
-        $message = t($translationKey);
+        $message = t('tearoom1.uniform-spam-words.msg.' . $key);
         // If translation exists and is not null or the key itself, return it
-        if ($message !== null && $message !== $translationKey) {
+        if (!empty($message)) {
+            return $message;
+        }
+
+        // try without msg. prefix for backwards compatibility
+        $message = t('tearoom1.uniform-spam-words.' . $key);
+        if (!empty($message)) {
             return $message;
         }
 

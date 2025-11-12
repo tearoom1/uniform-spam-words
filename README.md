@@ -119,13 +119,13 @@ return [
     'code' => 'en',
     'name' => 'English',
     'translations' => [
-        'tearoom1.uniform-spam-words.rejected' => 'Your custom spam rejection message',
-        'tearoom1.uniform-spam-words.soft-reject' => 'Your custom soft rejection message',
-        'tearoom1.uniform-spam-words.regex-mismatch' => 'Message does not match the required pattern.',
-        'tearoom1.uniform-spam-words.too-short' => 'Message is too short.',
-        'tearoom1.uniform-spam-words.too-long' => 'Message is too long.',
-        'tearoom1.uniform-spam-words.too-few-words' => 'Message contains too few words.',
-        'tearoom1.uniform-spam-words.too-many-words' => 'Message contains too many words.',
+        'tearoom1.uniform-spam-words.msg.rejected' => 'Your custom spam rejection message',
+        'tearoom1.uniform-spam-words.msg.soft-reject' => 'Your custom soft rejection message',
+        'tearoom1.uniform-spam-words.msg.regex-mismatch' => 'Message does not match the required pattern.',
+        'tearoom1.uniform-spam-words.msg.too-short' => 'Message is too short.',
+        'tearoom1.uniform-spam-words.msg.too-long' => 'Message is too long.',
+        'tearoom1.uniform-spam-words.msg.too-few-words' => 'Message contains too few words.',
+        'tearoom1.uniform-spam-words.msg.too-many-words' => 'Message contains too many words.',
     ],
 ];
 ```
