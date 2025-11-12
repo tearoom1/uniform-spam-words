@@ -4,6 +4,7 @@ namespace Uniform\Guards;
 
 use Kirby\Cms\App;
 use Uniform\Exceptions\PerformerException;
+use Kirby\Toolkit\F;
 
 class SpamWordsGuard extends Guard
 {
@@ -46,6 +47,15 @@ class SpamWordsGuard extends Guard
             $this->reject($this->getMessage('too-many-words'));
         }
 
+        // Run custom validator if provided
+        $customValidator = option('tearoom1.uniform-spam-words.customValidator', null);
+        if ($customValidator !== null && is_callable($customValidator)) {
+            $result = $customValidator($message);
+            if ($result === false) {
+                $this->reject($this->getMessage('custom-validation-failed'));
+            }
+        }
+
         // count occurrences of links in message
         // also count emails and www
         $emailCount = preg_match_all('%\w+@\w+\.\w+%i', $message);
@@ -59,14 +69,23 @@ class SpamWordsGuard extends Guard
         $spamWords = [];
 
         if (option('tearoom1.uniform-spam-words.useWordLists', true)) {
-            // load spam words from all files in directory lists
-            foreach (glob(__DIR__ . '/lists/*.txt') as $file) {
-                // extract number from file name _n.txt
-                $weight = intval(substr(basename($file), -5, 1));
-                $words = file($file, FILE_IGNORE_NEW_LINES);
-                foreach ($words as $word) {
-                    $spamWords[strtolower($word)] = $weight;
+            // Try to load from cache first
+            $cache = App::instance()->cache('uniform-spam-words');
+            $spamWords = $cache->get('wordlists');
+
+            if ($spamWords === null) {
+                // Load spam words from all files in directory lists
+                $spamWords = [];
+                foreach (glob(__DIR__ . '/lists/*.txt') as $file) {
+                    // extract number from file name _n.txt
+                    $weight = intval(substr(basename($file), -5, 1));
+                    $words = file($file, FILE_IGNORE_NEW_LINES);
+                    foreach ($words as $word) {
+                        $spamWords[strtolower($word)] = $weight;
+                    }
                 }
+                // Cache for 24 hours
+                $cache->set('wordlists', $spamWords, 1440);
             }
         }
 
@@ -92,10 +111,30 @@ class SpamWordsGuard extends Guard
         $spamThreshold = option('tearoom1.uniform-spam-words.spamThreshold', 8);
         $addressThreshold = option('tearoom1.uniform-spam-words.addressThreshold', 2);
 
-        if ($addressCount > $addressThreshold * 2 ||
-            $addressCount + $spamCount > $spamThreshold) {
+        $totalScore = $addressCount + $spamCount;
+        $isSpam = $addressCount > $addressThreshold * 2 || $totalScore > $spamThreshold;
+        $isSoftReject = !$isSpam && $addressCount > $addressThreshold;
+
+        // Debug logging
+        if (option('tearoom1.uniform-spam-words.debug', false)) {
+            $this->logDebug([
+                'message_length' => $messageLength,
+                'word_count' => $wordCount,
+                'address_count' => $addressCount,
+                'spam_score' => $spamCount,
+                'total_score' => $totalScore,
+                'is_spam' => $isSpam,
+                'is_soft_reject' => $isSoftReject,
+                'thresholds' => [
+                    'spam' => $spamThreshold,
+                    'address' => $addressThreshold,
+                ],
+            ]);
+        }
+
+        if ($isSpam) {
             $this->reject($this->getMessage('rejected'));
-        } else if ($addressCount > $addressThreshold) {
+        } else if ($isSoftReject) {
             $this->reject($this->getMessage('soft-reject'));
         }
     }
@@ -131,9 +170,28 @@ class SpamWordsGuard extends Guard
             'too-short' => option('tearoom1.uniform-spam-words.msg.too-short', 'Message is too short.'),
             'too-long' => option('tearoom1.uniform-spam-words.msg.too-long', 'Message is too long.'),
             'too-few-words' => option('tearoom1.uniform-spam-words.msg.too-few-words', 'Message contains too few words.'),
-            'too-many-words' => option('tearoom1.uniform-spam-words.msg.too-many-words', 'Message contains too many words.')
+            'too-many-words' => option('tearoom1.uniform-spam-words.msg.too-many-words', 'Message contains too many words.'),
+            'custom-validation-failed' => option('tearoom1.uniform-spam-words.msg.custom-validation-failed', 'Message failed custom validation.')
         ];
 
         return $fallbacks[$key] ?? '';
+    }
+
+    /**
+     * Log debug information
+     */
+    private function logDebug(array $data): void
+    {
+        $logFile = option('tearoom1.uniform-spam-words.debugLogFile', null);
+        if ($logFile === null) {
+            // Default to Kirby's log directory
+            $logFile = App::instance()->root('logs') . '/uniform-spam-words.log';
+        }
+
+        $timestamp = date('Y-m-d H:i:s');
+        $ip = App::instance()->visitor()->ip();
+        $logEntry = "[{$timestamp}] IP: {$ip}\n" . json_encode($data, JSON_PRETTY_PRINT) . "\n\n";
+
+        F::append($logFile, $logEntry);
     }
 }

@@ -72,7 +72,10 @@ return [
             1 => ['promotion', 'free'], // weight 1, increases spam likelihood only a little
             6 => ['seo', 'marketing'], // weight 6, increases spam likelihood a lot
         ],
+        'customValidator' => null, // custom validation callback, default null (disabled)
         'silentReject' => false, // Reject spam without showing error messages (returns a space as error message), default false
+        'debug' => false, // Enable debug logging, default false
+        'debugLogFile' => null, // Path to debug log file, default null (uses Kirby's log directory)
     ],
 ];
 ```
@@ -93,16 +96,75 @@ return [
 | `spamThreshold` | int | `8`     | Spam score threshold for rejection. Higher values are more lenient. |
 | `useWordLists` | bool | `true`  | Use built-in spam word lists. Set to `false` to only use custom words. |
 | `spamWords` | array | `[]`    | Custom spam words with weights. Format: `[weight => ['word1', 'word2']]`. Higher weight = stronger spam signal. |
+| `customValidator` | callable\|null | `null`  | Custom validation callback that receives the message and returns `true` (valid) or `false` (invalid). Set to `null` to disable. |
 | **Other Options** ||         ||
 | `enabled` | bool | `true`  | Enable or disable the plugin globally. |
 | `silentReject` | bool | `false` | Reject spam without showing error messages (returns a space character). |
+| `debug` | bool | `false` | Enable debug logging to track spam scores and help tune thresholds. |
+| `debugLogFile` | string\|null | `null`  | Path to debug log file. Defaults to Kirby's log directory if `null`. |
 
 **How it works:**
 1. Validates regex pattern (if configured)
 2. Checks message length constraints
 3. Checks word count constraints
-4. If addresses found (>= minAddresses), calculates spam score from keywords
-5. Rejects if thresholds exceeded
+4. Runs custom validator (if configured)
+5. If addresses found (>= minAddresses), calculates spam score from keywords
+6. Rejects if thresholds exceeded
+
+### Common Use Cases
+
+#### Contact Form with Basic Spam Protection
+```php
+return [
+    'tearoom1.uniform-spam-words' => [
+        'minLength' => 10,
+        'minWords' => 3,
+        'addressThreshold' => 2,
+        'spamThreshold' => 8,
+    ],
+];
+```
+
+#### Strict Comment System
+```php
+return [
+    'tearoom1.uniform-spam-words' => [
+        'minLength' => 20,
+        'maxLength' => 1000,
+        'minWords' => 5,
+        'maxWords' => 200,
+        'addressThreshold' => 1, // Only allow 1 link
+        'spamThreshold' => 5, // Stricter threshold
+    ],
+];
+```
+
+#### Debug Mode for Tuning
+```php
+return [
+    'tearoom1.uniform-spam-words' => [
+        'debug' => true,
+        'debugLogFile' => '/path/to/spam-debug.log',
+    ],
+];
+```
+
+#### Custom Validation with Industry-Specific Terms
+```php
+return [
+    'tearoom1.uniform-spam-words' => [
+        'spamWords' => [
+            3 => ['crypto', 'nft', 'investment'],
+            5 => ['guaranteed', 'risk-free'],
+            8 => ['get rich quick'],
+        ],
+        'customValidator' => function($message) {
+            // Reject if message contains phone numbers
+            return !preg_match('/\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/', $message);
+        },
+    ],
+];
+```
 
 ### Custom Error Messages
 
@@ -118,6 +180,7 @@ return [
       'too-long' => 'Message is too long.',
       'too-few-words' => 'Message contains too few words.',
       'too-many-words' => 'Message contains too many words.',
+      'custom-validation-failed' => 'Message failed custom validation.',
     ],
 ],
 ```
@@ -136,6 +199,7 @@ return [
         'tearoom1.uniform-spam-words.msg.too-long' => 'Message is too long.',
         'tearoom1.uniform-spam-words.msg.too-few-words' => 'Message contains too few words.',
         'tearoom1.uniform-spam-words.msg.too-many-words' => 'Message contains too many words.',
+        'tearoom1.uniform-spam-words.msg.custom-validation-failed' => 'Message failed custom validation.',
     ],
 ];
 ```

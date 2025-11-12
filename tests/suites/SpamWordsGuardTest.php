@@ -371,6 +371,331 @@ class SpamWordsGuardTest extends TestCase
     }
 
     /**
+     * @throws PerformerException
+     */
+    public function testNullMinLengthDisabled()
+    {
+        $_POST['message'] = 'Short http://example.com';
+
+        $this->performWithOptions([
+            'minLength' => null
+        ]);
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testNullMaxLengthDisabled()
+    {
+        $_POST['message'] = str_repeat('Very long message ', 100) . ' http://example.com';
+
+        $this->performWithOptions([
+            'maxLength' => null
+        ]);
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testNullMinWordsDisabled()
+    {
+        $_POST['message'] = 'Few http://example.com';
+
+        $this->performWithOptions([
+            'minWords' => null
+        ]);
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testNullMaxWordsDisabled()
+    {
+        $_POST['message'] = str_repeat('word ', 200) . ' http://example.com';
+
+        $this->performWithOptions([
+            'maxWords' => null
+        ]);
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testCustomValidatorPass()
+    {
+        $_POST['message'] = 'Valid message http://example.com';
+
+        $this->performWithOptions([
+            'customValidator' => function($message) {
+                return strpos($message, 'Valid') !== false;
+            }
+        ]);
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testCustomValidatorFail()
+    {
+        $_POST['message'] = 'Invalid message http://example.com';
+
+        $this->expectException(PerformerException::class);
+        $this->performWithOptions([
+            'customValidator' => function($message) {
+                return strpos($message, 'Valid') !== false;
+            }
+        ]);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testPluginDisabled()
+    {
+        $_POST['message'] = 'Spam spam spam seo seo seo http://example.com http://test.com';
+
+        $this->performWithOptions([
+            'enabled' => false
+        ]);
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testEmptyMessage()
+    {
+        $_POST['message'] = '';
+
+        $this->perform();
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testDebugLoggingEnabled()
+    {
+        $_POST['message'] = 'Test spam message with seo and marketing http://example.com';
+
+        $logFile = sys_get_temp_dir() . '/spam-test-' . uniqid() . '.log';
+
+        try {
+            $this->performWithOptions([
+                'debug' => true,
+                'debugLogFile' => $logFile,
+                'spamWords' => [
+                    3 => ['seo', 'marketing']
+                ],
+                'useWordLists' => false
+            ]);
+        } catch (PerformerException $e) {
+            // Expected to be rejected
+        }
+
+        // Check if log file was created and contains expected data
+        $this->assertFileExists($logFile);
+        $logContent = file_get_contents($logFile);
+        $this->assertStringContainsString('message_length', $logContent);
+        $this->assertStringContainsString('word_count', $logContent);
+        $this->assertStringContainsString('spam_score', $logContent);
+        $this->assertStringContainsString('total_score', $logContent);
+
+        // Cleanup
+        if (file_exists($logFile)) {
+            unlink($logFile);
+        }
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testDebugLoggingDisabled()
+    {
+        $_POST['message'] = 'Test spam message with seo and marketing http://example.com';
+
+        $logFile = sys_get_temp_dir() . '/spam-test-' . uniqid() . '.log';
+
+        try {
+            $this->performWithOptions([
+                'debug' => false,
+                'debugLogFile' => $logFile,
+                'spamWords' => [
+                    3 => ['seo', 'marketing']
+                ],
+                'useWordLists' => false
+            ]);
+        } catch (PerformerException $e) {
+            // Expected to be rejected
+        }
+
+        // Log file should not exist when debug is disabled
+        $this->assertFileDoesNotExist($logFile);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testCachingWordLists()
+    {
+        $_POST['message'] = 'Test message http://example.com';
+
+        // First call - should load from files and cache
+        $startTime = microtime(true);
+        $this->performWithOptions([
+            'useWordLists' => true
+        ]);
+        $firstCallTime = microtime(true) - $startTime;
+
+        // Second call - should load from cache (faster)
+        $startTime = microtime(true);
+        $this->performWithOptions([
+            'useWordLists' => true
+        ]);
+        $secondCallTime = microtime(true) - $startTime;
+
+        // Second call should be faster or similar (cached)
+        // We just verify it doesn't error and completes
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testCustomValidatorWithComplexLogic()
+    {
+        $_POST['message'] = 'Contact me at 555-123-4567 http://example.com';
+
+        $this->expectException(PerformerException::class);
+        $this->performWithOptions([
+            'customValidator' => function($message) {
+                // Reject messages with phone numbers
+                return !preg_match('/\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/', $message);
+            }
+        ]);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testCustomValidatorWithEmailCheck()
+    {
+        $_POST['message'] = 'not-an-email';
+
+        $this->expectException(PerformerException::class);
+        $this->performWithOptions([
+            'minAddresses' => 0,
+            'customValidator' => function($message) {
+                // Only accept valid email addresses
+                return filter_var($message, FILTER_VALIDATE_EMAIL) !== false;
+            }
+        ]);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testCustomValidatorReturnsTrue()
+    {
+        $_POST['message'] = 'test@example.com';
+
+        $this->performWithOptions([
+            'minAddresses' => 0,
+            'customValidator' => function($message) {
+                return filter_var($message, FILTER_VALIDATE_EMAIL) !== false;
+            }
+        ]);
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testWordListCachingWithCustomWords()
+    {
+        $_POST['message'] = 'Test crypto investment opportunity http://example.com';
+
+        $this->expectException(PerformerException::class);
+        $this->performWithOptions([
+            'useWordLists' => true, // Use cached word lists
+            'spamWords' => [
+                5 => ['crypto', 'investment']
+            ],
+            'spamThreshold' => 8
+        ]);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testDisableWordListsUseOnlyCustom()
+    {
+        $_POST['message'] = 'SEO marketing http://example.com';
+
+        // Should not be spam because we disabled word lists
+        // and only use custom words which don't include 'seo' or 'marketing'
+        $this->performWithOptions([
+            'useWordLists' => false,
+            'spamWords' => [
+                5 => ['crypto', 'investment']
+            ],
+            'spamThreshold' => 8
+        ]);
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testDebugLogContainsIPAddress()
+    {
+        $_POST['message'] = 'Test message with spam http://example.com';
+
+        $logFile = sys_get_temp_dir() . '/spam-test-ip-' . uniqid() . '.log';
+
+        try {
+            $this->performWithOptions([
+                'debug' => true,
+                'debugLogFile' => $logFile,
+                'spamWords' => [
+                    10 => ['spam']
+                ],
+                'useWordLists' => false
+            ]);
+        } catch (PerformerException $e) {
+            // Expected
+        }
+
+        $this->assertFileExists($logFile);
+        $logContent = file_get_contents($logFile);
+        $this->assertStringContainsString('IP:', $logContent);
+
+        // Cleanup
+        if (file_exists($logFile)) {
+            unlink($logFile);
+        }
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testCustomValidatorNotCallable()
+    {
+        $_POST['message'] = 'Test message http://example.com';
+
+        // Should not error if customValidator is not callable
+        $this->performWithOptions([
+            'customValidator' => 'not-a-function'
+        ]);
+        $this->assertTrue(true);
+    }
+
+    /**
      * @return void
      * @throws PerformerException
      */

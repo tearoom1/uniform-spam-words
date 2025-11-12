@@ -29,7 +29,10 @@ $pluginOptions = [
     'maxWords' => null, // the maximum number of words in the message, default null (disabled)
     'useWordLists' => true, // Use the default word lists, default true
     'spamWords' => [], // define your own spam words, the key number defines the weight of the words
+    'customValidator' => null, // custom validation callback, receives message and returns bool, default null (disabled)
     'silentReject' => false, // Reject spam without showing error messages (returns a space as error message), default false
+    'debug' => false, // Enable debug logging to track spam scores, default false
+    'debugLogFile' => null, // Path to debug log file, default null (uses Kirby's log directory)
     // Custom error messages for single-language sites
     'msg.rejected' => 'Message rejected as spam.',
     'msg.soft-reject' => 'Too many links or emails in the message body, please send an email instead.',
@@ -38,6 +41,7 @@ $pluginOptions = [
     'msg.too-long' => 'Message is too long.',
     'msg.too-few-words' => 'Message contains too few words.',
     'msg.too-many-words' => 'Message contains too many words.',
+    'msg.custom-validation-failed' => 'Message failed custom validation.',
 ];
 
 // Load translations only if languages are enabled
