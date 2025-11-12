@@ -102,13 +102,15 @@ return [
 
 ```php
 'tearoom1.uniform-spam-words' => [
-    'msg.rejected' => 'Your custom spam rejection message',
-    'msg.soft-reject' => 'Your custom soft rejection message',
-    'msg.regex-mismatch' => 'Message does not match the required pattern.',
-    'msg.too-short' => 'Message is too short.',
-    'msg.too-long' => 'Message is too long.',
-    'msg.too-few-words' => 'Message contains too few words.',
-    'msg.too-many-words' => 'Message contains too many words.',
+    'msg' => [
+      'rejected' => 'Your custom spam rejection message',
+      'soft-reject' => 'Your custom soft rejection message',
+      'regex-mismatch' => 'Message does not match the required pattern.',
+      'too-short' => 'Message is too short.',
+      'too-long' => 'Message is too long.',
+      'too-few-words' => 'Message contains too few words.',
+      'too-many-words' => 'Message contains too many words.',
+    ],
 ],
 ```
 
