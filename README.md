@@ -59,7 +59,7 @@ You may change certain options in your `config.php`, e.g.:
 return [
     'tearoom1.uniform-spam-words' => [
         'enabled' => true, // enable the plugin, default true
-        'minAddresses' => 0, // the minimum number of addresses like links and emails that are needed to check for spam, default 0
+        'minAddresses' => 0, // the minimum number of addresses like links and emails that are needed to check for spam, default 1
         'addressThreshold' => 2, // the number of addresses like links and emails that are allowed, default 2
         'spamThreshold' => 8, // the threshold for the spam score, default 8
         'regexMatch' => null, // the regex pattern to match against the message, default null (disabled)
