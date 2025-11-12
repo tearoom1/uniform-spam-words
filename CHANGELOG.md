@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/tearoom1/uniform-spam-words/compare/v1.5.0...v1.5.1) (2025-11-12)
+
+
+### Bug Fixes
+
+* Better debug logging ([f0f894f](https://github.com/tearoom1/uniform-spam-words/commit/f0f894fd5451bfd1b0a93ac173a0ceedfd024993))
+
 ## [1.5.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.4.1...v1.5.0) (2025-11-12)
 
 
@@ -25,11 +32,4 @@
 ### Bug Fixes
 
 * fixed prefix for translations and added fallback for old configs ([9a13779](https://github.com/tearoom1/uniform-spam-words/commit/9a13779dcc8eb09f6b5eea5036a383fce4adc358))
-
-## [1.3.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.2.3...v1.3.0) (2025-11-12)
-
-
-### Features
-
-* Added additional options and checks [#3](https://github.com/tearoom1/uniform-spam-words/issues/3) [#4](https://github.com/tearoom1/uniform-spam-words/issues/4) ([e34a7a6](https://github.com/tearoom1/uniform-spam-words/commit/e34a7a6210bcb72dcec5a1d5556883c7e7fec7bd))
 
