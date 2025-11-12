@@ -3,6 +3,7 @@
 
 # npm modules
 /node_modules
+composer.lock
 
 /vendor/
 /site/
