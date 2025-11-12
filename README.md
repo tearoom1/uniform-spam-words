@@ -81,20 +81,20 @@ return [
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| **Validation Options** ||||
-| `regexMatch` | string\|null | `null` | Optional regex pattern that the message must match (e.g., `/^[a-zA-Z0-9\s]+$/`). Set to `null` to disable. |
-| `minLength` | int\|null | `null` | Minimum character length required for the message. Set to `null` to disable. |
-| `maxLength` | int\|null | `null` | Maximum character length allowed for the message. Set to `null` to disable. |
-| `minWords` | int\|null | `null` | Minimum word count required for the message. Set to `null` to disable. |
-| `maxWords` | int\|null | `null` | Maximum word count allowed for the message. Set to `null` to disable. |
-| **Spam Detection Options** ||||
-| `minAddresses` | int | `0` | Minimum number of addresses required to trigger spam word checking. Set to `0` to always check. |
-| `addressThreshold` | int | `2` | Number of addresses (links/emails) allowed before triggering spam check. |
-| `spamThreshold` | int | `8` | Spam score threshold for rejection. Higher values are more lenient. |
-| `useWordLists` | bool | `true` | Use built-in spam word lists. Set to `false` to only use custom words. |
-| `spamWords` | array | `[]` | Custom spam words with weights. Format: `[weight => ['word1', 'word2']]`. Higher weight = stronger spam signal. |
-| **Other Options** ||||
-| `enabled` | bool | `true` | Enable or disable the plugin globally. |
+| **Validation Options** ||         ||
+| `regexMatch` | string\|null | `null`  | Optional regex pattern that the message must match (e.g., `/^[a-zA-Z0-9\s]+$/`). Set to `null` to disable. |
+| `minLength` | int\|null | `null`  | Minimum character length required for the message. Set to `null` to disable. |
+| `maxLength` | int\|null | `null`  | Maximum character length allowed for the message. Set to `null` to disable. |
+| `minWords` | int\|null | `null`  | Minimum word count required for the message. Set to `null` to disable. |
+| `maxWords` | int\|null | `null`  | Maximum word count allowed for the message. Set to `null` to disable. |
+| **Spam Detection Options** ||         ||
+| `minAddresses` | int | `1`     | Minimum number of addresses required to trigger spam word checking. Set to `0` to always check. |
+| `addressThreshold` | int | `2`     | Number of addresses (links/emails) allowed before triggering spam check. |
+| `spamThreshold` | int | `8`     | Spam score threshold for rejection. Higher values are more lenient. |
+| `useWordLists` | bool | `true`  | Use built-in spam word lists. Set to `false` to only use custom words. |
+| `spamWords` | array | `[]`    | Custom spam words with weights. Format: `[weight => ['word1', 'word2']]`. Higher weight = stronger spam signal. |
+| **Other Options** ||         ||
+| `enabled` | bool | `true`  | Enable or disable the plugin globally. |
 | `silentReject` | bool | `false` | Reject spam without showing error messages (returns a space character). |
 
 **How it works:**
