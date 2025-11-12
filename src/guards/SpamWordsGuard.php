@@ -12,11 +12,36 @@ class SpamWordsGuard extends Guard
      */
     public function perform()
     {
-        $addressThreshold = option('tearoom1.uniform-spam-words.addressThreshold', 2);
-        $spamThreshold = option('tearoom1.uniform-spam-words.spamThreshold', 8);
-        $silentReject = option('tearoom1.uniform-spam-words.silentReject', false);
 
         $message = App::instance()->request()->body()->get('message');
+
+        // Check regex pattern match
+        $regexMatch = option('tearoom1.uniform-spam-words.regexMatch', '');
+        if (!empty($regexMatch) && !preg_match($regexMatch, $message)) {
+            $this->reject($this->getMessage('regex-mismatch'));
+        }
+
+        // Check message length
+        $minLength = option('tearoom1.uniform-spam-words.minLength', 0);
+        $maxLength = option('tearoom1.uniform-spam-words.maxLength', 0);
+        $messageLength = mb_strlen($message);
+        if ($minLength > 0 && $messageLength < $minLength) {
+            $this->reject($this->getMessage('too-short'));
+        }
+        if ($maxLength > 0 && $messageLength > $maxLength) {
+            $this->reject($this->getMessage('too-long'));
+        }
+
+        // Check word count
+        $minWords = option('tearoom1.uniform-spam-words.minWords', 0);
+        $maxWords = option('tearoom1.uniform-spam-words.maxWords', 0);
+        $wordCount = str_word_count($message);
+        if ($minWords > 0 && $wordCount < $minWords) {
+            $this->reject($this->getMessage('too-few-words'));
+        }
+        if ($maxWords > 0 && $wordCount > $maxWords) {
+            $this->reject($this->getMessage('too-many-words'));
+        }
 
         // count occurrences of links in message
         // also count emails and www
@@ -24,10 +49,9 @@ class SpamWordsGuard extends Guard
         $linkCount = preg_match_all('%\b(https?://[^\s<>]*|www\.\w+\.\w+)%is', $message);
         $addressCount = $linkCount + $emailCount;
 
-        if ($addressCount === 0) {
+        if ($addressCount < option('tearoom1.uniform-spam-words.minAddresses', 1)) {
             return; // no spam
         }
-
 
         $spamWords = [];
 
@@ -62,13 +86,14 @@ class SpamWordsGuard extends Guard
             //            $matches[$word] = $weight;
         }
 
+        $spamThreshold = option('tearoom1.uniform-spam-words.spamThreshold', 8);
+        $addressThreshold = option('tearoom1.uniform-spam-words.addressThreshold', 2);
+
         if ($addressCount > $addressThreshold * 2 ||
             $addressCount + $spamCount > $spamThreshold) {
-            $message = $silentReject ? ' ' : $this->getMessage('rejected');
-            $this->reject($message);
+            $this->reject($this->getMessage('rejected'));
         } else if ($addressCount > $addressThreshold) {
-            $message = $silentReject ? ' ' : $this->getMessage('soft-reject');
-            $this->reject($message);
+            $this->reject($this->getMessage('soft-reject'));
         }
     }
 
@@ -77,6 +102,11 @@ class SpamWordsGuard extends Guard
      */
     private function getMessage(string $key): string
     {
+        $silentReject = option('tearoom1.uniform-spam-words.silentReject', false);
+        if ($silentReject) {
+            return ' ';
+        }
+
         $translationKey = 'tearoom1.uniform-spam-words.' . $key;
 
         // Try to get translation from Kirby
@@ -88,8 +118,13 @@ class SpamWordsGuard extends Guard
 
         // Fallback messages for single-language sites
         $fallbacks = [
-            'rejected' => option('tearoom1.uniform-spam-words.rejected', 'Message rejected as spam.'),
-            'soft-reject' => option('tearoom1.uniform-spam-words.soft-reject', 'Too many links or emails in the message body, please send an email instead.')
+            'rejected' => option('tearoom1.uniform-spam-words.msg.rejected', 'Message rejected as spam.'),
+            'soft-reject' => option('tearoom1.uniform-spam-words.msg.soft-reject', 'Too many links or emails in the message body, please send an email instead.'),
+            'regex-mismatch' => option('tearoom1.uniform-spam-words.msg.regex-mismatch', 'Message does not match the required pattern.'),
+            'too-short' => option('tearoom1.uniform-spam-words.msg.too-short', 'Message is too short.'),
+            'too-long' => option('tearoom1.uniform-spam-words.msg.too-long', 'Message is too long.'),
+            'too-few-words' => option('tearoom1.uniform-spam-words.msg.too-few-words', 'Message contains too few words.'),
+            'too-many-words' => option('tearoom1.uniform-spam-words.msg.too-many-words', 'Message contains too many words.')
         ];
 
         return $fallbacks[$key] ?? '';

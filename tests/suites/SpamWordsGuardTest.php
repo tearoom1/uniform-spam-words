@@ -132,11 +132,265 @@ class SpamWordsGuardTest extends TestCase
     }
 
     /**
+     * @throws PerformerException
+     */
+    public function testRegexMatchValid()
+    {
+        $_POST['message'] = 'This is a valid message with http://example.com';
+
+        $this->performWithOptions([
+            'regexMatch' => '/^[a-zA-Z0-9\s:\/\.\-]+$/'
+        ]);
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testRegexMatchInvalid()
+    {
+        $_POST['message'] = 'Invalid message with special chars: äöü!@#$%';
+
+        $this->expectException(PerformerException::class);
+        $this->performWithOptions([
+            'regexMatch' => '/^[a-zA-Z0-9\s]+$/'
+        ]);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testMinLengthValid()
+    {
+        $_POST['message'] = 'This message is long enough with http://example.com';
+
+        $this->performWithOptions([
+            'minLength' => 20
+        ]);
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testMinLengthInvalid()
+    {
+        $_POST['message'] = 'Short';
+
+        $this->expectException(PerformerException::class);
+        $this->performWithOptions([
+            'minLength' => 50
+        ]);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testMaxLengthValid()
+    {
+        $_POST['message'] = 'Short message http://example.com';
+
+        $this->performWithOptions([
+            'maxLength' => 100
+        ]);
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testMaxLengthInvalid()
+    {
+        $_POST['message'] = 'This is a very long message that exceeds the maximum allowed length and should be rejected by the spam guard http://example.com';
+
+        $this->expectException(PerformerException::class);
+        $this->performWithOptions([
+            'maxLength' => 50
+        ]);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testMinWordsValid()
+    {
+        $_POST['message'] = 'This message has enough words to pass the validation http://example.com';
+
+        $this->performWithOptions([
+            'minWords' => 5
+        ]);
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testMinWordsInvalid()
+    {
+        $_POST['message'] = 'Too few http://example.com';
+
+        $this->expectException(PerformerException::class);
+        $this->performWithOptions([
+            'minWords' => 10
+        ]);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testMaxWordsValid()
+    {
+        $_POST['message'] = 'Short message http://example.com';
+
+        $this->performWithOptions([
+            'maxWords' => 10
+        ]);
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testMaxWordsInvalid()
+    {
+        $_POST['message'] = 'This is a very long message with many many many many many many words that should exceed the maximum word count http://example.com';
+
+        $this->expectException(PerformerException::class);
+        $this->performWithOptions([
+            'maxWords' => 10
+        ]);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testCombinedValidations()
+    {
+        $_POST['message'] = 'This is a valid message with proper length and word count http://example.com';
+
+        $this->performWithOptions([
+            'minLength' => 20,
+            'maxLength' => 200,
+            'minWords' => 5,
+            'maxWords' => 50
+        ]);
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testSilentReject()
+    {
+        $_POST['message'] = 'Seo seo www.example.com';
+
+        try {
+            $this->performWithOptions([
+                'silentReject' => true
+            ]);
+        } catch (PerformerException $e) {
+            $this->assertEquals(' ', $e->getMessage());
+            return;
+        }
+
+        $this->fail('Expected PerformerException was not thrown');
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testCustomSpamWordSingleOccurrence()
+    {
+        $_POST['message'] = 'Check out my amazing cryptocurrency investment opportunity http://example.com';
+
+        $this->performWithOptions([
+            'spamWords' => [
+                7 => ['cryptocurrency']
+            ],
+            'spamThreshold' => 8,
+            'useWordLists' => false
+        ]);
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testCustomSpamWordMultipleOccurrences()
+    {
+        $_POST['message'] = 'Amazing cryptocurrency and blockchain cryptocurrency technology http://example.com';
+
+        $this->expectException(PerformerException::class);
+        $this->performWithOptions([
+            'spamWords' => [
+                5 => ['cryptocurrency', 'blockchain']
+            ],
+            'spamThreshold' => 8
+        ]);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testCustomSpamWordsWeightedThreshold()
+    {
+        $_POST['message'] = 'Get your discount offer now with free trial http://example.com';
+
+        $this->expectException(PerformerException::class);
+        $this->performWithOptions([
+            'spamWords' => [
+                2 => ['discount', 'offer'],
+                3 => ['free', 'trial']
+            ],
+            'spamThreshold' => 8,
+            'useWordLists' => false
+        ]);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testCustomSpamWordsBelowThreshold()
+    {
+        $_POST['message'] = 'I need a discount for this offer http://example.com';
+
+        $this->performWithOptions([
+            'spamWords' => [
+                2 => ['discount', 'offer']
+            ],
+            'spamThreshold' => 10,
+            'useWordLists' => false
+        ]);
+        $this->assertTrue(true);
+    }
+
+    /**
      * @return void
      * @throws PerformerException
      */
     public function perform(): void
     {
+        $guard = new SpamWordsGuard(new Form);
+        $guard->perform();
+    }
+
+    /**
+     * @param array $options
+     * @return void
+     * @throws PerformerException
+     */
+    public function performWithOptions(array $options): void
+    {
+        // Set options temporarily
+        $kirby = new \Kirby\Cms\App([
+            'roots' => [
+                'index' => __DIR__,
+            ],
+            'options' => [
+                'tearoom1.uniform-spam-words' => $options
+            ]
+        ]);
+
         $guard = new SpamWordsGuard(new Form);
         $guard->perform();
     }

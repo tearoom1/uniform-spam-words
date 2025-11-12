@@ -60,23 +60,41 @@ return [
     'tearoom1.uniform-spam-words' => [
         'addressThreshold' => 2, // the number of addresses like links and emails that are allowed, default 2
         'spamThreshold' => 8, // the threshold for the spam score, default 8
+        'minAddresses' => 1, // the minimum number of addresses like links and emails that are needed to check for spam, default 1
+        'regexMatch' => '', // the regex pattern to match against the message, default empty string
+        'minLength' => 0, // the minimum length of the message, default 0
+        'maxLength' => 0, // the maximum length of the message, default 0
+        'minWords' => 0, // the minimum number of words in the message, default 0
+        'maxWords' => 0, // the maximum number of words in the message, default 0
         'useWordLists' => true, // Use the default word lists, default true
         'spamWords' => [ // define your own spam words, the key number defines the weight of the words
             1 => ['promotion', 'free'], // weight 1, increases spam likelihood only a little
             6 => ['seo', 'marketing'], // weight 6, increases spam likelihood a lot
         ],
         'silentReject' => false, // Reject spam without showing error messages (returns a space as error message), default false
-        // Custom error messages for single-language sites
-        'rejected' => 'Message rejected as spam.',
-        'soft-reject' => 'Too many links or emails in the message body, please send an email instead.',
     ],
 ];
 ```
 
-- The `addressThreshold` defines the number of addresses like links and emails that are allowed in the message. If the number of addresses exceeds this threshold, the form submission is blocked.
-- If no addresses can be found, then the message is considered as safe and no spam words are checked.
-- The spam score is calculated by counting the occurrences of spam keywords in the message. The score is increased by the weight of the keyword. If the score exceeds the `spamThreshold`, the form submission is blocked.
-- Set `silentReject` to `true` to reject spam submissions without displaying any of the configured error messages. I does return a space character as error message though.
+**Validation Options:**
+- `regexMatch` - Optional regex pattern that the message must match (e.g., `/^[a-zA-Z0-9\s]+$/` to allow only alphanumeric characters)
+- `minLength` / `maxLength` - Enforce minimum/maximum character length (0 = disabled)
+- `minWords` / `maxWords` - Enforce minimum/maximum word count (0 = disabled)
+
+**Spam Detection Options:**
+- `addressThreshold` - Number of addresses (links/emails) allowed before triggering spam check (default: 2)
+- `minAddresses` - Minimum addresses required to trigger spam word checking (default: 1)
+- `spamThreshold` - Spam score threshold for rejection (default: 8)
+- `useWordLists` - Use built-in spam word lists (default: true)
+- `spamWords` - Custom spam words with weights (higher weight = stronger spam signal)
+- `silentReject` - Reject without showing error messages, returns a space character (default: false)
+
+**How it works:**
+1. Validates regex pattern (if configured)
+2. Checks message length constraints
+3. Checks word count constraints
+4. If addresses found (>= minAddresses), calculates spam score from keywords
+5. Rejects if thresholds exceeded
 
 ### Custom Error Messages
 
@@ -84,8 +102,13 @@ return [
 
 ```php
 'tearoom1.uniform-spam-words' => [
-    'rejected' => 'Your custom spam rejection message',
-    'soft-reject' => 'Your custom soft rejection message',
+    'msg.rejected' => 'Your custom spam rejection message',
+    'msg.soft-reject' => 'Your custom soft rejection message',
+    'msg.regex-mismatch' => 'Message does not match the required pattern.',
+    'msg.too-short' => 'Message is too short.',
+    'msg.too-long' => 'Message is too long.',
+    'msg.too-few-words' => 'Message contains too few words.',
+    'msg.too-many-words' => 'Message contains too many words.',
 ],
 ```
 
@@ -98,6 +121,11 @@ return [
     'translations' => [
         'tearoom1.uniform-spam-words.rejected' => 'Your custom spam rejection message',
         'tearoom1.uniform-spam-words.soft-reject' => 'Your custom soft rejection message',
+        'tearoom1.uniform-spam-words.regex-mismatch' => 'Message does not match the required pattern.',
+        'tearoom1.uniform-spam-words.too-short' => 'Message is too short.',
+        'tearoom1.uniform-spam-words.too-long' => 'Message is too long.',
+        'tearoom1.uniform-spam-words.too-few-words' => 'Message contains too few words.',
+        'tearoom1.uniform-spam-words.too-many-words' => 'Message contains too many words.',
     ],
 ];
 ```
