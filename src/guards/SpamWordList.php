@@ -83,6 +83,8 @@ class SpamWordList
             $words = $this->getWords($path);
         } elseif (is_dir($path)) {
             // Directory - load all .txt files (later files override earlier ones for duplicates)
+            // remove trailing slash from path
+            $path = rtrim($path, '/');
             foreach (glob($path . '/*.txt') as $file) {
                 $words = $this->getWords($file) + $words;
             }
@@ -100,7 +102,7 @@ class SpamWordList
         $spamCount = 0;
         $matchedWords = [];
         $spamWords = $this->loadSpamWords();
-        
+
         foreach ($spamWords as $word => $weight) {
             $matches = preg_match_all('/\b' . preg_quote($word) . '\b/i', $message);
             if ($matches > 0) {
@@ -113,7 +115,7 @@ class SpamWordList
                 ];
             }
         }
-        
+
         return [
             'score' => $spamCount,
             'matches' => $matchedWords,
