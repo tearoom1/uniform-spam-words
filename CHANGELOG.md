@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/tearoom1/uniform-spam-words/compare/v1.7.0...v1.7.1) (2025-11-13)
+
+
+### Bug Fixes
+
+* fixed double counts if spam words appear in different places ([8c2864b](https://github.com/tearoom1/uniform-spam-words/commit/8c2864b197769f048f60ac459ea9895339a3ac9a))
+
 ## [1.7.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.6.1...v1.7.0) (2025-11-13)
 
 
@@ -25,11 +32,4 @@
 ### Bug Fixes
 
 * fixed logging ([4657b34](https://github.com/tearoom1/uniform-spam-words/commit/4657b342aa3516824c00f7f5a511c4213ed7a675))
-
-## [1.5.1](https://github.com/tearoom1/uniform-spam-words/compare/v1.5.0...v1.5.1) (2025-11-12)
-
-
-### Bug Fixes
-
-* Better debug logging ([f0f894f](https://github.com/tearoom1/uniform-spam-words/commit/f0f894fd5451bfd1b0a93ac173a0ceedfd024993))
 
