@@ -1,3 +1,10 @@
+## [1.7.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.6.1...v1.7.0) (2025-11-13)
+
+
+### Features
+
+* attach debug info to form data [#8](https://github.com/tearoom1/uniform-spam-words/issues/8) ([ed53c53](https://github.com/tearoom1/uniform-spam-words/commit/ed53c532d9056a9f1af479da9936fe7c25b44185))
+
 ## [1.6.1](https://github.com/tearoom1/uniform-spam-words/compare/v1.6.0...v1.6.1) (2025-11-13)
 
 
@@ -25,11 +32,4 @@
 ### Bug Fixes
 
 * Better debug logging ([f0f894f](https://github.com/tearoom1/uniform-spam-words/commit/f0f894fd5451bfd1b0a93ac173a0ceedfd024993))
-
-## [1.5.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.4.1...v1.5.0) (2025-11-12)
-
-
-### Features
-
-* Added a few more options like debug log and custom validator ([2fea47a](https://github.com/tearoom1/uniform-spam-words/commit/2fea47ac9386f6ab27a102abcb0c45d77cbe5b3c))
 
