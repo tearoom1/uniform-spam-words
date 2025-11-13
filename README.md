@@ -59,20 +59,20 @@ You may change certain options in your `config.php`, e.g.:
 return [
     'tearoom1.uniform-spam-words' => [
         'enabled' => true, // enable the plugin, default true
-        'minAddresses' => 0, // the minimum number of addresses like links and emails that are needed to check for spam, default 1
-        'addressThreshold' => 2, // the number of addresses like links and emails that are allowed, default 2
-        'spamThreshold' => 8, // the threshold for the spam score, default 8
-        'regexMatch' => null, // the regex pattern to match against the message, default null (disabled)
         'minLength' => 10, // the minimum length of the message, default null (disabled)
         'maxLength' => 500, // the maximum length of the message, default null (disabled)
         'minWords' => 3, // the minimum number of words in the message, default null (disabled)
         'maxWords' => null, // the maximum number of words in the message, default null (disabled)
+        'regexMatch' => null, // the regex pattern to match against the message, default null (disabled)
+        'customValidator' => null, // custom validation callback, default null (disabled)
+        'minAddresses' => 0, // the minimum number of addresses like links and emails that are needed to check for spam, default 1
+        'addressThreshold' => 2, // the number of addresses like links and emails that are allowed, default 2
+        'spamThreshold' => 8, // the threshold for the spam score, default 8
         'useWordLists' => true, // Use the default word lists, default true
         'spamWords' => [ // define your own spam words, the key number defines the weight of the words
             1 => ['promotion', 'free'], // weight 1, increases spam likelihood only a little
             6 => ['seo', 'marketing'], // weight 6, increases spam likelihood a lot
         ],
-        'customValidator' => null, // custom validation callback, default null (disabled)
         'silentReject' => false, // Reject spam without showing error messages (returns a space as error message), default false
         'debug' => false, // Enable debug logging, default false
         'debugLogFile' => null, // Path to debug log file, default null (uses Kirby's log directory)
@@ -85,11 +85,12 @@ return [
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | **Validation Options** ||         ||
-| `regexMatch` | string\|null | `null`  | Optional regex pattern that the message must match (e.g., `/^[a-zA-Z0-9\s]+$/`). Set to `null` to disable. |
 | `minLength` | int\|null | `null`  | Minimum character length required for the message. Set to `null` to disable. |
 | `maxLength` | int\|null | `null`  | Maximum character length allowed for the message. Set to `null` to disable. |
 | `minWords` | int\|null | `null`  | Minimum word count required for the message. Set to `null` to disable. |
 | `maxWords` | int\|null | `null`  | Maximum word count allowed for the message. Set to `null` to disable. |
+| `regexMatch` | string\|null | `null`  | Optional regex pattern that the message must match (e.g., `/^[a-zA-Z0-9\s]+$/`). Set to `null` to disable. |
+| `customValidator` | callable\|null | `null`  | Custom validation callback that receives the message and returns `true` (valid) or `false` (invalid). Set to `null` to disable. |
 | **Spam Detection Options** ||         ||
 | `minAddresses` | int | `1`     | Minimum number of addresses required to trigger spam word checking. Set to `0` to always check. |
 | `addressThreshold` | int | `2`     | Number of addresses (links/emails) allowed before triggering spam check. |
@@ -97,7 +98,6 @@ return [
 | `useWordLists` | bool | `true`  | Use built-in spam word lists. Set to `false` to disable built-in lists. |
 | `wordListPaths` | string\|array\|null | `null`  | Custom paths to word list files or directories. Always additive (added to built-in lists if enabled). Can be a single path (string) or multiple paths (array). |
 | `spamWords` | array | `[]`    | Custom spam words with weights. Format: `[weight => ['word1', 'word2']]`. Higher weight = stronger spam signal. |
-| `customValidator` | callable\|null | `null`  | Custom validation callback that receives the message and returns `true` (valid) or `false` (invalid). Set to `null` to disable. |
 | **Other Options** ||         ||
 | `enabled` | bool | `true`  | Enable or disable the plugin globally. |
 | `fields` | array | `['message']` | Form fields to check for spam. Specify multiple fields to combine them for spam checking (e.g., `['message', 'subject', 'body']`). |
