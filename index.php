@@ -24,6 +24,7 @@ $pluginOptions = [
     'fields' => ['message'], // form fields to check for spam, default ['message']
     'wordListCache' => true, // enable caching of word lists, default true
     'addressThreshold' => 2, // the number of addresses like links and emails that are allowed, default 2
+    'addressesWeight' => 1, // the weight multiplier for each address found (links/emails), default 1
     'spamThreshold' => 8, // the threshold for the spam score, default 8
     'minAddresses' => 1, // the minimum number of addresses like links and emails that are needed to check for spam, default 1
     'regexMatch' => null, // the regex pattern to match against the message, default null (disabled)

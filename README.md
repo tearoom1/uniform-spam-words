@@ -77,6 +77,7 @@ You may change certain options in your global `config.php`
 | **Spam Detection Options** ||         |                                                                                                                                                                                           |
 | `minAddresses` | int | `1`     | Minimum number of addresses required to trigger spam word checking. Set to `0` to always check.                                                                                           |
 | `addressThreshold` | int | `2`     | Number of addresses (links/emails) allowed before triggering spam check.                                                                                                                  |
+| `addressesWeight` | int | `1`     | Weight multiplier for each address (link/email) found. Each address contributes `addressesWeight` points to the total spam score.                                                         |
 | `spamThreshold` | int | `8`     | Spam score threshold for rejection. Higher values are more lenient.                                                                                                                       |
 | `useWordLists` | bool | `true`  | Use built-in spam word lists. Set to `false` to disable built-in lists.                                                                                                                   |
 | `wordListPaths` | string\|array\|null | `null`  | Custom paths to word list files or directories. Always additive (added to built-in lists if enabled). Can be a single path (string) or multiple paths (array).                            |
@@ -90,6 +91,12 @@ You may change certain options in your global `config.php`
 | `debugLogFile` | string\|null | `null`  | Path to debug log file. Defaults to `uniform-spam-words.log` in the kirby logs directory (e.g. `site/logs/uniform-spam-words.log`).                                                       |
 | `attachDebugInfo` | bool | `false` | Attach spam check data to Form object (accessible via `$form->data('spam_words_guard_info')`) for use in email templates. Be aware that by default all fields are sent in uniform emails. |
 
+
+### Message Rejection & Spam Score
+- A message is rejected if the spam score is higher than the threshold. Or if the number of addresses are higher than twice the `addressThreshold`.
+- A messages is *soft* rejected (different message) if the number of addresses are higher than `addressThreshold` but the spam score is lower than the threshold.
+- The spam score is calculated by adding the weights of all matched words.
+Plus the number of addresses found times the `addressesWeight`.
 
 ### Common Use Cases
 
@@ -106,7 +113,8 @@ return [
         'customValidator' => null, // custom validation callback, default null (disabled)
         'minAddresses' => 0, // the minimum number of addresses like links and emails that are needed to check for spam, default 1
         'addressThreshold' => 2, // the number of addresses like links and emails that are allowed, default 2
-        'spamThreshold' => 8, // the threshold for the spam score, default 8
+        'addressesWeight' => 2, // the weight multiplier for each address (link/email), default 1
+        'spamThreshold' => 10, // the threshold for the spam score, default 8
         'useWordLists' => true, // Use the default word lists, default true
         'spamWords' => [ // define your own spam words, the key number defines the weight of the words
             1 => ['promotion', 'free'], // weight 1, increases spam likelihood only a little
@@ -153,6 +161,16 @@ return [
     'tearoom1.uniform-spam-words' => [
         'fields' => ['subject', 'message', 'company'], // Check multiple fields
         'spamThreshold' => 10,
+    ],
+];
+```
+
+#### Increase Weight for Links/Emails
+```php
+return [
+    'tearoom1.uniform-spam-words' => [
+        'addressesWeight' => 3, // Each link/email counts as 3 points instead of 1
+        'spamThreshold' => 12, // Adjust threshold accordingly
     ],
 ];
 ```
@@ -212,8 +230,17 @@ return [
     "message_length": 150,
     "word_count": 25,
     "address_count": 3,
+    "addresses_weight": 1,
+    "address_score": 3,
     "spam_score": 12,
     "total_score": 15,
+    "matched_words": {
+        "seo": {
+            "weight": 6,
+            "count": 2,
+            "subtotal": 12
+        }
+    },
     "thresholds": {
         "spam": 8,
         "address": 2

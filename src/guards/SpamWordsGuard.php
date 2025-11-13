@@ -136,17 +136,26 @@ class SpamWordsGuard extends Guard
 
         $spamThreshold = option('tearoom1.uniform-spam-words.spamThreshold', 8);
         $addressThreshold = option('tearoom1.uniform-spam-words.addressThreshold', 2);
+        $addressesWeight = option('tearoom1.uniform-spam-words.addressesWeight', 1);
 
-        $spamCount = $this->wordList->calculateSpamScore($message);
+        $spamResult = $this->wordList->calculateSpamScore($message);
+        $spamScore = $spamResult['score'];
+        $matchedWords = $spamResult['matches'];
 
-        $totalScore = $addressCount + $spamCount;
+        // Calculate weighted address score
+        $addressScore = $addressCount * $addressesWeight;
+        $totalScore = $addressScore + $spamScore;
+
         $isSpam = $addressCount > $addressThreshold * 2 || $totalScore > $spamThreshold;
         $isSoftReject = !$isSpam && $addressCount > $addressThreshold;
 
         $spamData = [
             'address_count' => $addressCount,
-            'spam_score' => $spamCount,
+            'addresses_weight' => $addressesWeight,
+            'address_score' => $addressScore,
+            'spam_score' => $spamScore,
             'total_score' => $totalScore,
+            'matched_words' => $matchedWords,
             'thresholds' => [
                 'spam' => $spamThreshold,
                 'address' => $addressThreshold,

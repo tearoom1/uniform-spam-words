@@ -93,18 +93,31 @@ class SpamWordList
 
     /**
      * Calculate spam score based on word matches
+     * Returns array with 'score' and 'matches' (word => [weight, count, subtotal])
      */
-    public function calculateSpamScore(string $message): int
+    public function calculateSpamScore(string $message): array
     {
         $spamCount = 0;
+        $matchedWords = [];
         $spamWords = $this->loadSpamWords();
+        
         foreach ($spamWords as $word => $weight) {
             $matches = preg_match_all('/\b' . preg_quote($word) . '\b/i', $message);
             if ($matches > 0) {
-                $spamCount += $matches * $weight;
+                $subtotal = $matches * $weight;
+                $spamCount += $subtotal;
+                $matchedWords[$word] = [
+                    'weight' => $weight,
+                    'count' => $matches,
+                    'subtotal' => $subtotal,
+                ];
             }
         }
-        return $spamCount;
+        
+        return [
+            'score' => $spamCount,
+            'matches' => $matchedWords,
+        ];
     }
 
     /**
