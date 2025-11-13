@@ -733,6 +733,224 @@ class SpamWordsGuardTest extends TestCase
     }
 
     /**
+     * @throws PerformerException
+     */
+    public function testCustomWordListFromSingleFile()
+    {
+        // Create temporary word list file
+        $tempFile = sys_get_temp_dir() . '/custom_spam_5.txt';
+        file_put_contents($tempFile, "blockchain\ncryptocurrency\ninvestment");
+
+        $_POST['message'] = 'Check out this blockchain opportunity http://example.com';
+
+        try {
+            $this->performWithOptions([
+                'useWordLists' => false,
+                'wordListPaths' => $tempFile,
+                'spamThreshold' => 8
+            ]);
+        } finally {
+            if (file_exists($tempFile)) {
+                unlink($tempFile);
+            }
+        }
+
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testCustomWordListFromSingleFileSpam()
+    {
+        // Create temporary word list file with weight 5
+        $tempFile = sys_get_temp_dir() . '/custom_spam_5.txt';
+        file_put_contents($tempFile, "blockchain\ncryptocurrency\ninvestment");
+
+        $_POST['message'] = 'Amazing blockchain and cryptocurrency investment opportunity http://example.com';
+
+        $this->expectException(PerformerException::class);
+
+        try {
+            $this->performWithOptions([
+                'useWordLists' => false,
+                'wordListPaths' => $tempFile,
+                'spamThreshold' => 8
+            ]);
+        } finally {
+            if (file_exists($tempFile)) {
+                unlink($tempFile);
+            }
+        }
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testCustomWordListFromDirectory()
+    {
+        // Create temporary directory with word list files
+        $tempDir = sys_get_temp_dir() . '/spam_lists_' . uniqid();
+        mkdir($tempDir);
+        file_put_contents($tempDir . '/custom_3.txt', "forex\ntrading");
+        file_put_contents($tempDir . '/custom_6.txt', "casino\ngambling");
+
+        $_POST['message'] = 'Learn forex trading strategies http://example.com';
+
+        try {
+            $this->performWithOptions([
+                'useWordLists' => false,
+                'wordListPaths' => $tempDir,
+                'spamThreshold' => 8
+            ]);
+        } finally {
+            if (is_dir($tempDir)) {
+                array_map('unlink', glob($tempDir . '/*.txt'));
+                rmdir($tempDir);
+            }
+        }
+
+        $this->assertTrue(true);
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testCustomWordListFromDirectorySpam()
+    {
+        // Create temporary directory with word list files
+        $tempDir = sys_get_temp_dir() . '/spam_lists_' . uniqid();
+        mkdir($tempDir);
+        file_put_contents($tempDir . '/custom_3.txt', "forex\ntrading");
+        file_put_contents($tempDir . '/custom_6.txt', "casino\ngambling");
+
+        $_POST['message'] = 'Best casino gambling and forex trading http://example.com';
+
+        $this->expectException(PerformerException::class);
+
+        try {
+            $this->performWithOptions([
+                'useWordLists' => false,
+                'wordListPaths' => $tempDir,
+                'spamThreshold' => 8
+            ]);
+        } finally {
+            if (is_dir($tempDir)) {
+                array_map('unlink', glob($tempDir . '/*.txt'));
+                rmdir($tempDir);
+            }
+        }
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testCustomWordListMultiplePaths()
+    {
+        // Create multiple temporary files
+        $tempFile1 = sys_get_temp_dir() . '/custom_spam_4.txt';
+        $tempFile2 = sys_get_temp_dir() . '/custom_spam_5.txt';
+        file_put_contents($tempFile1, "mlm\npyramid");
+        file_put_contents($tempFile2, "ponzi\nscheme");
+
+        $_POST['message'] = 'Join our mlm pyramid ponzi scheme http://example.com';
+
+        $this->expectException(PerformerException::class);
+
+        try {
+            $this->performWithOptions([
+                'useWordLists' => false,
+                'wordListPaths' => [$tempFile1, $tempFile2],
+                'spamThreshold' => 8
+            ]);
+        } finally {
+            if (file_exists($tempFile1)) unlink($tempFile1);
+            if (file_exists($tempFile2)) unlink($tempFile2);
+        }
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testCustomWordListAdditiveToBuiltIn()
+    {
+        // Create temporary word list file
+        $tempFile = sys_get_temp_dir() . '/custom_spam_8.txt';
+        file_put_contents($tempFile, "customword");
+
+        $_POST['message'] = 'This has customword and seo http://example.com';
+
+        $this->expectException(PerformerException::class);
+
+        try {
+            $this->performWithOptions([
+                'useWordLists' => true, // Built-in lists enabled
+                'wordListPaths' => $tempFile, // Custom list is additive
+                'spamThreshold' => 8
+            ]);
+        } finally {
+            if (file_exists($tempFile)) {
+                unlink($tempFile);
+            }
+        }
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testCustomWordListWithCaching()
+    {
+        // Create temporary word list file
+        $tempFile = sys_get_temp_dir() . '/custom_spam_5.txt';
+        file_put_contents($tempFile, "testword");
+
+        $_POST['message'] = 'This has testword multiple times testword http://example.com';
+
+        $this->expectException(PerformerException::class);
+
+        try {
+            // First call - should cache
+            $this->performWithOptions([
+                'useWordLists' => false,
+                'wordListPaths' => $tempFile,
+                'wordListCache' => true,
+                'spamThreshold' => 8
+            ]);
+        } finally {
+            if (file_exists($tempFile)) {
+                unlink($tempFile);
+            }
+        }
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testCustomWordListWithoutCaching()
+    {
+        // Create temporary word list file
+        $tempFile = sys_get_temp_dir() . '/custom_spam_5.txt';
+        file_put_contents($tempFile, "nocacheword");
+
+        $_POST['message'] = 'This has nocacheword multiple times nocacheword http://example.com';
+
+        $this->expectException(PerformerException::class);
+
+        try {
+            $this->performWithOptions([
+                'useWordLists' => false,
+                'wordListPaths' => $tempFile,
+                'wordListCache' => false, // Caching disabled
+                'spamThreshold' => 8
+            ]);
+        } finally {
+            if (file_exists($tempFile)) {
+                unlink($tempFile);
+            }
+        }
+    }
+
+    /**
      * @return void
      * @throws PerformerException
      */
