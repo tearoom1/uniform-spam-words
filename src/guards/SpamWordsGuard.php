@@ -161,6 +161,7 @@ class SpamWordsGuard extends Guard
         }
 
         $this->logger->log('passed', $message, $spamData);
+        $this->attachSpamDataToForm('passed', $message, $spamData);
     }
 
 
@@ -180,6 +181,8 @@ class SpamWordsGuard extends Guard
     private function rejectWithLog(string $reason, string $message, array $data = []): void
     {
         $this->logger->log('rejected', $message, $data, $reason);
+        $this->attachSpamDataToForm('rejected',$message, $data, $reason);
+
         $this->reject($this->getResultMessage($reason));
     }
 
@@ -226,6 +229,18 @@ class SpamWordsGuard extends Guard
         }
 
         return $formData;
+    }
+
+    /**
+     * Attach spam data to the Form object for email use
+     */
+    private function attachSpamDataToForm(string $status,string $message, array $data, ?string $reason = null): void
+    {
+        if (!option('tearoom1.uniform-spam-words.attachDebugInfo', false)) {
+            return;
+        }
+        $debugInfo = $this->logger->buildDebugData($status, $message, $data, $reason);
+        $this->form->data('spam_words_guard_info', json_encode($debugInfo, JSON_PRETTY_PRINT));
     }
 
     /**

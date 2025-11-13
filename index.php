@@ -38,6 +38,7 @@ $pluginOptions = [
     'silentReject' => false, // Reject spam without showing error messages (returns a space as error message), default false
     'debug' => false, // Enable debug logging to track spam scores, default false
     'debugLogFile' => null, // Path to debug log file, default null (uses Kirby's log directory)
+    'attachDebugInfo' => false, // Attach spam check data to Form object for use in email templates, default false
     // Custom error messages for single-language sites
     'msg.rejected' => 'Message rejected as spam.',
     'msg.soft-reject' => 'Too many links or emails in the message body, please send an email instead.',

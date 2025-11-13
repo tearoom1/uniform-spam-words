@@ -8,15 +8,10 @@ use Kirby\Toolkit\F;
 class SpamLogger
 {
     /**
-     * Log debug information
+     * Build debug data structure
      */
-    public function log(string $status, string $message, array $data = [], ?string $reason = null): void
+    public function buildDebugData(string $status, string $message, array $data = [], ?string $reason = null): array
     {
-        if (!option('tearoom1.uniform-spam-words.debug', false)) {
-            return;
-        }
-
-        // Collect checked fields for debug logging
         $requestBody = App::instance()->request()->body();
         $fieldsToCheck = option('tearoom1.uniform-spam-words.fields', ['message']);
         $checkedFields = [];
@@ -27,20 +22,31 @@ class SpamLogger
         }
 
         // Map reason rejected to spam score
-        $reason = match ($reason) {
+        $mappedReason = match ($reason) {
             'rejected' => 'spam_score',
             'soft-reject' => 'address_count',
             default => $reason,
         };
 
-        // Add message length, word count, and checked fields to log data
-        $logData = [
+        return [
                 'status' => $status,
-                'reason' => $reason,
+                'reason' => $mappedReason,
                 'checked_fields' => $checkedFields,
                 'message_length' => mb_strlen($message),
                 'word_count' => str_word_count($message),
             ] + $data;
+    }
+
+    /**
+     * Log debug information
+     */
+    public function log(string $status, string $message, array $data = [], ?string $reason = null): void
+    {
+        if (!option('tearoom1.uniform-spam-words.debug', false)) {
+            return;
+        }
+
+        $logData = $this->buildDebugData($status, $message, $data, $reason);
 
         $logFile = option('tearoom1.uniform-spam-words.debugLogFile')
             ?? App::instance()->root('logs') . '/uniform-spam-words.log';
