@@ -39,18 +39,16 @@ class SpamWordList
 
         if (option('tearoom1.uniform-spam-words.useWordLists', true)) {
             foreach (glob(__DIR__ . '/lists/*.txt') as $file) {
-                $weight = intval(substr(basename($file), -5, 1));
-                $words = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-                foreach ($words as $word) {
-                    $spamWords[trim($word)] = $weight;
-                }
+                // Merge with + operator to preserve existing keys (later files override earlier ones)
+                $spamWords = $this->getWords($file) + $spamWords;
             }
         }
 
         $customPaths = option('tearoom1.uniform-spam-words.wordListPaths', null);
         if ($customPaths !== null) {
             foreach ((array)$customPaths as $path) {
-                $spamWords = array_merge($spamWords, $this->loadWordListFromPath($path));
+                // Custom paths override built-in lists for duplicate words
+                $spamWords = $this->loadWordListFromPath($path) + $spamWords;
             }
         }
 
@@ -59,13 +57,15 @@ class SpamWordList
 
     /**
      * Merge spam words from config
+     * Config words override weights from built-in/custom file lists
      */
     private function mergeConfigSpamWords(array $spamWords): array
     {
         $configWords = option('tearoom1.uniform-spam-words.spamWords', []);
         foreach ($configWords as $weight => $words) {
             foreach ((array)$words as $word) {
-                $spamWords[trim($word)] = $weight;
+                // Overwrite existing weight if word already exists
+                $spamWords[mb_strtolower(trim($word))] = $weight;
             }
         }
         return $spamWords;
@@ -80,23 +80,11 @@ class SpamWordList
 
         if (is_file($path)) {
             // Single file - extract weight from filename _n.txt
-            $weight = intval(substr(basename($path), -5, 1));
-            $weight = $weight ?: 1;
-
-            $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-            foreach ($lines as $word) {
-                $words[trim($word)] = $weight;
-            }
+            $words = $this->getWords($path);
         } elseif (is_dir($path)) {
-            // Directory - load all .txt files
+            // Directory - load all .txt files (later files override earlier ones for duplicates)
             foreach (glob($path . '/*.txt') as $file) {
-                $weight = intval(substr(basename($file), -5, 1));
-                $weight = $weight ?: 1;
-
-                $lines = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-                foreach ($lines as $word) {
-                    $words[trim($word)] = $weight;
-                }
+                $words = $this->getWords($file) + $words;
             }
         }
 
@@ -117,5 +105,23 @@ class SpamWordList
             }
         }
         return $spamCount;
+    }
+
+    /**
+     * @param mixed $file
+     * @param array $words
+     * @return array
+     */
+    public function getWords(mixed $file): array
+    {
+        $weight = intval(substr(basename($file), -5, 1));
+        $weight = $weight ?: 1;
+
+        $words = [];
+        $lines = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $word) {
+            $words[mb_strtolower(trim($word))] = $weight;
+        }
+        return $words;
     }
 }

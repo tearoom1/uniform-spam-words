@@ -111,6 +111,8 @@ return [
         'spamWords' => [ // define your own spam words, the key number defines the weight of the words
             1 => ['promotion', 'free'], // weight 1, increases spam likelihood only a little
             6 => ['seo', 'marketing'], // weight 6, increases spam likelihood a lot
+            // Note: If a word exists in both built-in/file lists and spamWords config,
+            // the config weight will override the file weight (no double counting)
         ],
         'silentReject' => false, // Reject spam without showing error messages (returns a space as error message), default false
         'debug' => true, // Enable debug logging, default false

@@ -951,6 +951,141 @@ class SpamWordsGuardTest extends TestCase
     }
 
     /**
+     * @throws PerformerException
+     */
+    public function testNoDuplicateWordCounting()
+    {
+        // Create a custom word list file with a word that exists in built-in lists
+        // Built-in lists contain 'seo' with weight 6
+        $tempFile = sys_get_temp_dir() . '/custom_spam_3.txt';
+        file_put_contents($tempFile, "seo\ntest");
+
+        // Message contains 'seo' once - should only count once with the custom weight (3)
+        // not twice (6 from built-in + 3 from custom = 9)
+        $_POST['message'] = 'Check out this seo service http://example.com';
+
+        try {
+            $this->performWithOptions([
+                'useWordLists' => true, // Built-in lists enabled (contains 'seo' with weight 6)
+                'wordListPaths' => $tempFile, // Custom file with 'seo' weight 3 (should override)
+                'spamThreshold' => 8, // Threshold
+                'wordListCache' => false, // Disable cache for testing
+            ]);
+            
+            // Should pass because 'seo' weight 3 < threshold 8
+            $this->assertTrue(true);
+        } finally {
+            if (file_exists($tempFile)) {
+                unlink($tempFile);
+            }
+        }
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testConfigSpamWordsOverrideWeight()
+    {
+        // Create a custom word list file
+        $tempFile = sys_get_temp_dir() . '/custom_spam_5.txt';
+        file_put_contents($tempFile, "testword");
+
+        // Message contains 'testword' once
+        // Custom file has weight 5, but config overrides to weight 2
+        $_POST['message'] = 'This has testword in it http://example.com';
+
+        try {
+            $this->performWithOptions([
+                'useWordLists' => false,
+                'wordListPaths' => $tempFile, // Weight 5
+                'spamWords' => [
+                    2 => ['testword'], // Override to weight 2
+                ],
+                'spamThreshold' => 4, // Threshold
+                'wordListCache' => false,
+            ]);
+            
+            // Should pass because testword weight 2 < threshold 4
+            $this->assertTrue(true);
+        } finally {
+            if (file_exists($tempFile)) {
+                unlink($tempFile);
+            }
+        }
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testMultipleSourcesNoDuplicates()
+    {
+        // Test that a word appearing in built-in, custom file, AND config is only counted once
+        // with the config weight (highest priority)
+        $tempFile = sys_get_temp_dir() . '/custom_spam_7.txt';
+        file_put_contents($tempFile, "seo"); // weight 7 from filename
+
+        // 'seo' appears in:
+        // 1. Built-in lists (weight 6)
+        // 2. Custom file (weight 7)
+        // 3. Config spamWords (weight 1) <- should win
+        // Message has 'seo' once, so score should be 1, not 6+7+1=14
+        $_POST['message'] = 'seo services available http://example.com';
+
+        try {
+            $this->performWithOptions([
+                'useWordLists' => true, // Built-in 'seo' weight 6
+                'wordListPaths' => $tempFile, // Custom 'seo' weight 7
+                'spamWords' => [
+                    1 => ['seo'], // Config 'seo' weight 1 (should override)
+                ],
+                'spamThreshold' => 8,
+                'wordListCache' => false,
+            ]);
+            
+            // Should pass because 'seo' weight 1 < threshold 8
+            // Would fail if counted multiple times (6+7+1=14 > 8)
+            $this->assertTrue(true);
+        } finally {
+            if (file_exists($tempFile)) {
+                unlink($tempFile);
+            }
+        }
+    }
+
+    /**
+     * @throws PerformerException
+     */
+    public function testCaseInsensitiveNoDuplicates()
+    {
+        // Test that words with different cases are treated as the same word
+        $tempFile = sys_get_temp_dir() . '/custom_spam_5.txt';
+        file_put_contents($tempFile, "SEO\nMarketing");
+
+        // Message contains 'seo' and 'marketing' in different cases
+        $_POST['message'] = 'SEO and marketing services http://example.com';
+
+        try {
+            $this->performWithOptions([
+                'useWordLists' => false,
+                'wordListPaths' => $tempFile,
+                'spamWords' => [
+                    3 => ['seo', 'MARKETING'], // Different cases, should override
+                ],
+                'spamThreshold' => 8,
+                'wordListCache' => false,
+            ]);
+            
+            // Should pass: seo(3) + marketing(3) = 6 < 8
+            // Would fail if case-sensitive duplicates: seo(5) + SEO(3) + marketing(5) + MARKETING(3) = 16 > 8
+            $this->assertTrue(true);
+        } finally {
+            if (file_exists($tempFile)) {
+                unlink($tempFile);
+            }
+        }
+    }
+
+    /**
      * @return void
      * @throws PerformerException
      */
