@@ -1,3 +1,10 @@
+## [1.6.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.5.2...v1.6.0) (2025-11-13)
+
+
+### Features
+
+* custom word lists and refactoring ([dbe0bf7](https://github.com/tearoom1/uniform-spam-words/commit/dbe0bf7076efe62a5b40619a20207a2b6dbb69de))
+
 ## [1.5.2](https://github.com/tearoom1/uniform-spam-words/compare/v1.5.1...v1.5.2) (2025-11-12)
 
 
@@ -25,11 +32,4 @@
 ### Bug Fixes
 
 * revert to min addresses 1 for backwards compatibility ([97c5562](https://github.com/tearoom1/uniform-spam-words/commit/97c556238b77a344ee86e3c6aa00e7e0a9ce6afb))
-
-## [1.4.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.3.1...v1.4.0) (2025-11-12)
-
-
-### Features
-
-* updated min max options to use null as default, updated readme [#3](https://github.com/tearoom1/uniform-spam-words/issues/3) ([250afb9](https://github.com/tearoom1/uniform-spam-words/commit/250afb92525e87d8a6859192de248b8f8dea3271))
 
