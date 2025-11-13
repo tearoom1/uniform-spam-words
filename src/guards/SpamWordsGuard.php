@@ -4,10 +4,20 @@ namespace Uniform\Guards;
 
 use Kirby\Cms\App;
 use Uniform\Exceptions\PerformerException;
-use Kirby\Toolkit\F;
+use Uniform\Form;
 
 class SpamWordsGuard extends Guard
 {
+    private SpamLogger $logger;
+    private SpamWordList $wordList;
+
+    public function __construct(Form $form, array $options = [])
+    {
+        parent::__construct($form, $options);
+        $this->logger = new SpamLogger();
+        $this->wordList = new SpamWordList();
+    }
+
     /**
      * @throws PerformerException
      */
@@ -17,123 +27,123 @@ class SpamWordsGuard extends Guard
             return;
         }
 
-        $message = App::instance()->request()->body()->get('message');
+        $requestBody = App::instance()->request()->body();
+        $message = $this->collectMessage($requestBody);
+        $formData = $this->collectFormData($requestBody);
 
-        // Check regex pattern match
-        $regexMatch = option('tearoom1.uniform-spam-words.regexMatch', null);
-        if ($regexMatch !== null && !preg_match($regexMatch, $message)) {
-            $this->rejectWithLog('regex-mismatch', ['message_length' => mb_strlen($message)]);
-        }
+        $this->validateLength($message, $formData);
+        $this->validateWordCount($message, $formData);
+        $this->validateRegex($message, $formData);
+        $this->validateCustom($message, $formData);
+        $this->validateSpam($message, $formData);
+    }
 
-        // Check message length
+    /**
+     * Validate message length
+     */
+    private function validateLength(string $message, array $formData): void
+    {
         $minLength = option('tearoom1.uniform-spam-words.minLength', null);
         $maxLength = option('tearoom1.uniform-spam-words.maxLength', null);
-        $messageLength = mb_strlen($message);
-        if ($minLength !== null && $messageLength < $minLength) {
-            $this->rejectWithLog('too-short', [
-                'message_length' => $messageLength,
-                'min_length' => $minLength,
-            ]);
+
+        if ($minLength === null && $maxLength === null) {
+            return;
         }
-        if ($maxLength !== null && $messageLength > $maxLength) {
-            $this->rejectWithLog('too-long', [
-                'message_length' => $messageLength,
-                'max_length' => $maxLength,
+
+        $messageLength = mb_strlen($message);
+
+        if ($minLength !== null && $messageLength < $minLength) {
+            $this->rejectWithLog('too-short', $message, [
+                'min_length' => $minLength,
+                'form_data' => $formData,
             ]);
         }
 
-        // Check word count
+        if ($maxLength !== null && $messageLength > $maxLength) {
+            $this->rejectWithLog('too-long', $message, [
+                'max_length' => $maxLength,
+                'form_data' => $formData,
+            ]);
+        }
+    }
+
+    /**
+     * Validate word count
+     */
+    private function validateWordCount(string $message, array $formData): void
+    {
         $minWords = option('tearoom1.uniform-spam-words.minWords', null);
         $maxWords = option('tearoom1.uniform-spam-words.maxWords', null);
-        $wordCount = str_word_count($message);
-        if ($minWords !== null && $wordCount < $minWords) {
-            $this->rejectWithLog('too-few-words', [
-                'message_length' => $messageLength,
-                'word_count' => $wordCount,
-                'min_words' => $minWords,
-            ]);
+
+        if ($minWords === null && $maxWords === null) {
+            return;
         }
-        if ($maxWords !== null && $wordCount > $maxWords) {
-            $this->rejectWithLog('too-many-words', [
-                'message_length' => $messageLength,
-                'word_count' => $wordCount,
-                'max_words' => $maxWords,
+
+        $wordCount = str_word_count($message);
+
+        if ($minWords !== null && $wordCount < $minWords) {
+            $this->rejectWithLog('too-few-words', $message, [
+                'min_words' => $minWords,
+                'form_data' => $formData,
             ]);
         }
 
-        // Run custom validator if provided
+        if ($maxWords !== null && $wordCount > $maxWords) {
+            $this->rejectWithLog('too-many-words', $message, [
+                'max_words' => $maxWords,
+                'form_data' => $formData,
+            ]);
+        }
+    }
+
+    /**
+     * Validate regex pattern
+     */
+    private function validateRegex(string $message, array $formData): void
+    {
+        $regexMatch = option('tearoom1.uniform-spam-words.regexMatch', null);
+        if ($regexMatch !== null && !preg_match($regexMatch, $message)) {
+            $this->rejectWithLog('regex-mismatch', $message, [
+                'form_data' => $formData,
+            ]);
+        }
+    }
+
+    /**
+     * Validate with custom validator
+     */
+    private function validateCustom(string $message, array $formData): void
+    {
         $customValidator = option('tearoom1.uniform-spam-words.customValidator', null);
         if ($customValidator !== null && is_callable($customValidator)) {
             if ($customValidator($message) === false) {
-                $this->rejectWithLog('custom-validation-failed', [
-                    'message_length' => $messageLength,
-                    'word_count' => $wordCount,
+                $this->rejectWithLog('custom-validation-failed', $message, [
+                    'form_data' => $formData,
                 ]);
             }
         }
+    }
 
-        // count occurrences of links in message
-        // also count emails and www
-        $emailCount = preg_match_all('%\w+@\w+\.\w+%i', $message);
-        $linkCount = preg_match_all('%\b(https?://[^\s<>]*|www\.\w+\.\w+)%is', $message);
-        $addressCount = $linkCount + $emailCount;
-
+    /**
+     * Evaluate spam score and reject if necessary
+     */
+    private function validateSpam(string $message, array $formData): void
+    {
+        $addressCount = $this->countAddresses($message);
         if ($addressCount < option('tearoom1.uniform-spam-words.minAddresses', 1)) {
-            return; // no spam
-        }
-
-        $spamWords = [];
-
-        if (option('tearoom1.uniform-spam-words.useWordLists', true)) {
-            // Try to load from cache first
-            $cache = App::instance()->cache('uniform-spam-words');
-            $spamWords = $cache->get('wordlists');
-
-            if ($spamWords === null) {
-                // Load spam words from all files in directory lists
-                $spamWords = [];
-                foreach (glob(__DIR__ . '/lists/*.txt') as $file) {
-                    // extract number from file name _n.txt
-                    $weight = intval(substr(basename($file), -5, 1));
-                    $words = file($file, FILE_IGNORE_NEW_LINES);
-                    foreach ($words as $word) {
-                        $spamWords[strtolower($word)] = $weight;
-                    }
-                }
-                // Cache for 24 hours
-                $cache->set('wordlists', $spamWords, 1440);
-            }
-        }
-
-        // load spam words from config
-        $spamWordsMap = option('tearoom1.uniform-spam-words.spamWords', []);
-        foreach ($spamWordsMap as $weight => $words) {
-            foreach ($words as $word) {
-                $spamWords[strtolower($word)] = $weight;
-            }
-        }
-
-        //        $matches = [];
-        $spamCount = 0;
-        foreach ($spamWords as $word => $weight) {
-            $preg_match_all = preg_match_all('/\b' . preg_quote($word) . '\b/i', $message);
-            if ($preg_match_all === 0) {
-                continue;
-            }
-            $spamCount += $preg_match_all * $weight;
-            //            $matches[$word] = $weight;
+            return;
         }
 
         $spamThreshold = option('tearoom1.uniform-spam-words.spamThreshold', 8);
         $addressThreshold = option('tearoom1.uniform-spam-words.addressThreshold', 2);
+
+        $spamCount = $this->wordList->calculateSpamScore($message);
 
         $totalScore = $addressCount + $spamCount;
         $isSpam = $addressCount > $addressThreshold * 2 || $totalScore > $spamThreshold;
         $isSoftReject = !$isSpam && $addressCount > $addressThreshold;
 
         $spamData = [
-            'message_length' => $messageLength,
-            'word_count' => $wordCount,
             'address_count' => $addressCount,
             'spam_score' => $spamCount,
             'total_score' => $totalScore,
@@ -141,22 +151,87 @@ class SpamWordsGuard extends Guard
                 'spam' => $spamThreshold,
                 'address' => $addressThreshold,
             ],
+            'form_data' => $formData,
         ];
 
         if ($isSpam) {
-            $this->rejectWithLog('rejected', $spamData);
+            $this->rejectWithLog('rejected', $message, $spamData);
         } elseif ($isSoftReject) {
-            $this->rejectWithLog('soft-reject', $spamData);
+            $this->rejectWithLog('soft-reject', $message, $spamData);
         }
 
-        // Log successful validation
-        $this->log('passed', $spamData);
+        $this->logger->log('passed', $message, $spamData);
+    }
+
+
+    /**
+     * Count email and link addresses in message
+     */
+    private function countAddresses(string $message): int
+    {
+        $emailCount = preg_match_all('%\w+@\w+\.\w+%i', $message);
+        $linkCount = preg_match_all('%\b(https?://[^\s<>]*|www\.\w+\.\w+)%is', $message);
+        return $linkCount + $emailCount;
+    }
+
+    /**
+     * Reject with optional debug logging
+     */
+    private function rejectWithLog(string $reason, string $message, array $data = []): void
+    {
+        $this->logger->log('rejected', $message, $data, $reason);
+        $this->reject($this->getResultMessage($reason));
+    }
+
+    /**
+     * Collect message from specified form fields
+     */
+    private function collectMessage($requestBody): string
+    {
+        $fieldsToCheck = option('tearoom1.uniform-spam-words.fields', ['message']);
+        $messageParts = [];
+
+        foreach ((array)$fieldsToCheck as $field) {
+            $value = $requestBody->get($field);
+            if ($value) {
+                $messageParts[] = $value;
+            }
+        }
+
+        return implode(' ', $messageParts);
+    }
+
+    /**
+     * Collect form data for debug logging
+     */
+    private function collectFormData($requestBody): array
+    {
+        if (!option('tearoom1.uniform-spam-words.debug', false)) {
+            return [];
+        }
+
+        $formData = [];
+        $excludePatterns = ['password', 'token', 'captcha'];
+        foreach ($requestBody->toArray() as $key => $value) {
+            $exclude = false;
+            foreach ($excludePatterns as $pattern) {
+                if (stripos($key, $pattern) !== false) {
+                    $exclude = true;
+                    break;
+                }
+            }
+            if (!$exclude) {
+                $formData[$key] = is_string($value) ? mb_substr($value, 0, 100) : $value;
+            }
+        }
+
+        return $formData;
     }
 
     /**
      * Get translated message with fallback support for non-language sites
      */
-    private function getMessage(string $key): string
+    private function getResultMessage(string $key): string
     {
         $silentReject = option('tearoom1.uniform-spam-words.silentReject', false);
         if ($silentReject) {
@@ -191,62 +266,4 @@ class SpamWordsGuard extends Guard
         return $fallbacks[$key] ?? '';
     }
 
-    /**
-     * Reject with optional debug logging
-     */
-    private function rejectWithLog(string $reason, array $data = []): void
-    {
-        $this->log('rejected', $data, $reason);
-        $this->reject($this->getMessage($reason));
-    }
-
-    /**
-     * Log debug information
-     */
-    private function log(string $status, array $data = [], ?string $reason = null): void
-    {
-        if (!option('tearoom1.uniform-spam-words.debug', false)) {
-            return;
-        }
-
-        $logData = ['status' => $status] + $data;
-        if ($reason) {
-            $logData['reason'] = $reason;
-        }
-
-        $logFile = option('tearoom1.uniform-spam-words.debugLogFile') 
-            ?? App::instance()->root('logs') . '/uniform-spam-words.log';
-
-        $timestamp = date('Y-m-d H:i:s');
-        $ip = $this->anonymizeIp(App::instance()->visitor()->ip());
-        $logEntry = "[{$timestamp}] IP: {$ip}\n" . json_encode($logData, JSON_PRETTY_PRINT) . "\n\n";
-
-        F::append($logFile, $logEntry);
-    }
-
-    /**
-     * Anonymize IP address for GDPR compliance
-     */
-    private function anonymizeIp(string $ip): string
-    {
-        // Check if it's an IPv6 address
-        if (strpos($ip, ':') !== false) {
-            // IPv6: Keep first 4 segments, mask the rest
-            $parts = explode(':', $ip);
-            if (count($parts) > 4) {
-                return implode(':', array_slice($parts, 0, 4)) . ':0000:0000:0000:0000';
-            }
-            return $ip;
-        }
-
-        // IPv4: Mask last octet
-        $parts = explode('.', $ip);
-        if (count($parts) === 4) {
-            $parts[3] = '0';
-            return implode('.', $parts);
-        }
-
-        // Return as-is if format is unexpected
-        return $ip;
-    }
 }

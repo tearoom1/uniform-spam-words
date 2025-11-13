@@ -10,7 +10,9 @@
  */
 
 load([
-    'Uniform\\Guards\\SpamWordsGuard' => 'src/guards/SpamWordsGuard.php'
+    'Uniform\\Guards\\SpamWordsGuard' => 'src/guards/SpamWordsGuard.php',
+    'Uniform\\Guards\\SpamWordList' => 'src/guards/SpamWordList.php',
+    'Uniform\\Guards\\SpamLogger' => 'src/guards/SpamLogger.php',
 ], __DIR__);
 
 
@@ -19,6 +21,8 @@ use Kirby\Cms\App as Kirby;
 // add default options
 $pluginOptions = [
     'enabled' => true, // enable the plugin, default true
+    'fields' => ['message'], // form fields to check for spam, default ['message']
+    'wordListCache' => true, // enable caching of word lists, default true
     'addressThreshold' => 2, // the number of addresses like links and emails that are allowed, default 2
     'spamThreshold' => 8, // the threshold for the spam score, default 8
     'minAddresses' => 1, // the minimum number of addresses like links and emails that are needed to check for spam, default 1
@@ -27,7 +31,8 @@ $pluginOptions = [
     'maxLength' => null, // the maximum length of the message, default null (disabled)
     'minWords' => null, // the minimum number of words in the message, default null (disabled)
     'maxWords' => null, // the maximum number of words in the message, default null (disabled)
-    'useWordLists' => true, // Use the default word lists, default true
+    'useWordLists' => true, // Use the built-in word lists, default true
+    'wordListPaths' => null, // Custom paths to word list files or directories (always additive), default null
     'spamWords' => [], // define your own spam words, the key number defines the weight of the words
     'customValidator' => null, // custom validation callback, receives message and returns bool, default null (disabled)
     'silentReject' => false, // Reject spam without showing error messages (returns a space as error message), default false

@@ -94,13 +94,16 @@ return [
 | `minAddresses` | int | `1`     | Minimum number of addresses required to trigger spam word checking. Set to `0` to always check. |
 | `addressThreshold` | int | `2`     | Number of addresses (links/emails) allowed before triggering spam check. |
 | `spamThreshold` | int | `8`     | Spam score threshold for rejection. Higher values are more lenient. |
-| `useWordLists` | bool | `true`  | Use built-in spam word lists. Set to `false` to only use custom words. |
+| `useWordLists` | bool | `true`  | Use built-in spam word lists. Set to `false` to disable built-in lists. |
+| `wordListPaths` | string\|array\|null | `null`  | Custom paths to word list files or directories. Always additive (added to built-in lists if enabled). Can be a single path (string) or multiple paths (array). |
 | `spamWords` | array | `[]`    | Custom spam words with weights. Format: `[weight => ['word1', 'word2']]`. Higher weight = stronger spam signal. |
 | `customValidator` | callable\|null | `null`  | Custom validation callback that receives the message and returns `true` (valid) or `false` (invalid). Set to `null` to disable. |
 | **Other Options** ||         ||
 | `enabled` | bool | `true`  | Enable or disable the plugin globally. |
+| `fields` | array | `['message']` | Form fields to check for spam. Specify multiple fields to combine them for spam checking (e.g., `['message', 'subject', 'body']`). |
+| `wordListCache` | bool | `true`  | Enable caching of word lists. Set to `false` to reload word lists on every request (useful for development). |
 | `silentReject` | bool | `false` | Reject spam without showing error messages (returns a space character). |
-| `debug` | bool | `false` | Enable debug logging. Logs ALL validation attempts (both passed and rejected) with reason, metrics, anonymized IP, and timestamp. |
+| `debug` | bool | `false` | Enable debug logging. Logs ALL validation attempts with reason, metrics, form data, checked fields, anonymized IP, and timestamp. |
 | `debugLogFile` | string\|null | `null`  | Path to debug log file. Defaults to `logs/uniform-spam-words.log` in Kirby's log directory if `null`. |
 
 **How it works:**
@@ -139,6 +142,26 @@ return [
 ];
 ```
 
+#### Multi-Field Spam Checking
+```php
+return [
+    'tearoom1.uniform-spam-words' => [
+        'fields' => ['subject', 'message', 'company'], // Check multiple fields
+        'spamThreshold' => 10,
+    ],
+];
+```
+
+#### Development Mode (No Caching)
+```php
+return [
+    'tearoom1.uniform-spam-words' => [
+        'wordListCache' => false, // Disable caching for testing
+        'debug' => true,  // Enable detailed logging
+        'debugLogFile' => '/path/to/spam-debug.log',
+    ],
+];
+```
 
 #### Custom Validation with Industry-Specific Terms
 ```php
@@ -171,12 +194,124 @@ return [
 - ✅ All rejections (regex, length, words, custom validator, spam detection)
 - ✅ Successful validations (messages that pass all checks)
 - ✅ Rejection reason and relevant metrics for each attempt
+- ✅ **Form data** - All submitted form fields (truncated to 100 chars, excludes passwords/tokens)
+- ✅ **Checked fields** - Which fields were combined for spam checking
 - ✅ Anonymized IP address (GDPR compliant) and timestamp for tracking
+
+**Example log entry:**
+```json
+{
+    "status": "rejected",
+    "reason": "spam_score",
+    "checked_fields": ["message"],
+    "message_length": 150,
+    "word_count": 25,
+    "address_count": 3,
+    "spam_score": 12,
+    "total_score": 15,
+    "thresholds": {
+        "spam": 8,
+        "address": 2
+    },
+    "form_data": {
+        "name": "John Doe",
+        "email": "spam@example.com",
+        "message": "Buy now! Amazing SEO services..."
+    }
+}
+```
 
 **IP Anonymization (GDPR Compliant):**
 - IPv4: Last octet masked (e.g., `192.168.1.123` → `192.168.1.0`)
 - IPv6: Last 4 segments masked (e.g., `2001:db8:85a3:8d3:1319:8a2e:370:7348` → `2001:db8:85a3:8d3:0000:0000:0000:0000`)
 
+## Custom Word Lists
+
+You can use your own spam word list files instead of or in addition to the built-in lists.
+
+### File Format
+
+Word list files should be plain text files (`.txt`) with:
+- One term (single word or combination) per line
+- Weight encoded in filename as `_n.txt` where `n` is the weight (1-9)
+- Example: `custom_spam_5.txt` (weight 5)
+
+**Example file content (`my_spam_words_7.txt`):**
+```
+casino
+lottery
+winner
+prize
+```
+
+### Configuration Options
+
+**Single file:**
+```php
+'tearoom1.uniform-spam-words' => [
+    'wordListPaths' => '/path/to/my_spam_words_7.txt',
+],
+```
+
+**Multiple files:**
+```php
+'tearoom1.uniform-spam-words' => [
+    'wordListPaths' => [
+        '/path/to/my_spam_words_5.txt',
+        '/path/to/another_list_8.txt',
+    ],
+],
+```
+
+**Directory (loads all .txt files):**
+```php
+'tearoom1.uniform-spam-words' => [
+    'wordListPaths' => '/path/to/my-spam-lists',
+],
+```
+
+**Multiple directories:**
+```php
+'tearoom1.uniform-spam-words' => [
+    'wordListPaths' => [
+        '/path/to/spam-lists',
+        '/path/to/more-lists',
+    ],
+],
+```
+
+### Using Kirby Paths
+
+You can use Kirby's root helpers for cleaner paths:
+
+```php
+'tearoom1.uniform-spam-words' => [
+    'wordListPaths' => [
+        kirby()->root('site') . '/spam-words',
+        kirby()->root('config') . '/custom_spam_9.txt',
+    ],
+],
+```
+
+### Combining with Built-in Lists
+
+Custom word lists are **added to** the built-in lists (if enabled). The options work independently:
+
+**Built-in + Custom (default):**
+```php
+'tearoom1.uniform-spam-words' => [
+    'useWordLists' => true,  // Use built-in lists (default)
+    'wordListPaths' => '/path/to/my-lists', // Add custom lists
+],
+```
+
+### Notes
+
+- Custom word lists are cached for 24 hours (same as built-in lists)
+- Weight determines spam score contribution (higher = more spam-like)
+- Words are case-insensitive
+- Empty lines are skipped
+- Files must be readable by the web server
 
 ### Custom Error Messages
 

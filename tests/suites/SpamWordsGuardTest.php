@@ -3,7 +3,6 @@
 namespace tests\guards;
 
 load([
-    'Uniform\\Guards\\SpamWordsGuard' => '../../src/guards/SpamWordsGuard.php',
     'tests\\TestCase' => '../TestCase.php',
 ], __DIR__);
 
@@ -719,10 +718,10 @@ class SpamWordsGuardTest extends TestCase
 
         $this->assertFileExists($logFile);
         $logContent = file_get_contents($logFile);
-        
+
         // Check that IP is present but anonymized
         $this->assertStringContainsString('IP:', $logContent);
-        
+
         // IPv4 should end with .0 (last octet masked)
         // We can't test exact IP but we can verify the log was created
         $this->assertNotEmpty($logContent);
