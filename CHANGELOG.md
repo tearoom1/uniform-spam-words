@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/tearoom1/uniform-spam-words/compare/v1.8.0...v1.8.1) (2025-11-13)
+
+
+### Bug Fixes
+
+* remove trailing slash from path ([215880a](https://github.com/tearoom1/uniform-spam-words/commit/215880ad6042cbc7e51f05da1494f29efd8502df))
+
 ## [1.8.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.7.1...v1.8.0) (2025-11-13)
 
 
@@ -25,11 +32,4 @@
 ### Bug Fixes
 
 * updated readme ([e72ac7c](https://github.com/tearoom1/uniform-spam-words/commit/e72ac7cbe8874d14e3b201286e7ebf639f0b3d89))
-
-## [1.6.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.5.2...v1.6.0) (2025-11-13)
-
-
-### Features
-
-* custom word lists and refactoring ([dbe0bf7](https://github.com/tearoom1/uniform-spam-words/commit/dbe0bf7076efe62a5b40619a20207a2b6dbb69de))
 
