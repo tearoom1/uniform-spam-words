@@ -280,19 +280,6 @@ prize
 ],
 ```
 
-### Using Kirby Paths
-
-You can use Kirby's root helpers for cleaner paths:
-
-```php
-'tearoom1.uniform-spam-words' => [
-    'wordListPaths' => [
-        kirby()->root('site') . '/spam-words',
-        kirby()->root('config') . '/custom_spam_9.txt',
-    ],
-],
-```
-
 ### Combining with Built-in Lists
 
 Custom word lists are **added to** the built-in lists (if enabled). The options work independently:
