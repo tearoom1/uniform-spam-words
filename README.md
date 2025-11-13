@@ -75,7 +75,7 @@ return [
         ],
         'silentReject' => false, // Reject spam without showing error messages (returns a space as error message), default false
         'debug' => false, // Enable debug logging, default false
-        'debugLogFile' => null, // Path to debug log file, default null (uses Kirby's log directory)
+        'debugLogFile' => 'site/logs/my_custom_logfile.log', // Path to debug log file, default null (uses Kirby's log directory)
     ],
 ];
 ```
