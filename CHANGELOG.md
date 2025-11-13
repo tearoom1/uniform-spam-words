@@ -1,3 +1,10 @@
+## [1.8.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.7.1...v1.8.0) (2025-11-13)
+
+
+### Features
+
+* print spam score details in debug and added weight for addresses ([793d78d](https://github.com/tearoom1/uniform-spam-words/commit/793d78d38bad013db45ce9ad7bd643368452591d))
+
 ## [1.7.1](https://github.com/tearoom1/uniform-spam-words/compare/v1.7.0...v1.7.1) (2025-11-13)
 
 
@@ -25,11 +32,4 @@
 ### Features
 
 * custom word lists and refactoring ([dbe0bf7](https://github.com/tearoom1/uniform-spam-words/commit/dbe0bf7076efe62a5b40619a20207a2b6dbb69de))
-
-## [1.5.2](https://github.com/tearoom1/uniform-spam-words/compare/v1.5.1...v1.5.2) (2025-11-12)
-
-
-### Bug Fixes
-
-* fixed logging ([4657b34](https://github.com/tearoom1/uniform-spam-words/commit/4657b342aa3516824c00f7f5a511c4213ed7a675))
 
