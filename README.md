@@ -48,37 +48,20 @@ if ($kirby->request()->is('POST')) {
 }
 ```
 
+### How it works
+1. Checks message length constraints
+2. Checks word count constraints
+3. Validates regex pattern (if configured)
+4. Runs custom validator (if configured)
+5. If addresses found (>= minAddresses), calculates spam score from keywords
+6. Rejects if thresholds exceeded
 
-### Configuration
+## Configuration
 
 The plugin comes with a few lists of words and phrases that are used to build a spam score. Thus the plugin should work out of the box.
 
-You may change certain options in your `config.php`, e.g.:
+You may change certain options in your global `config.php`
 
-```php
-return [
-    'tearoom1.uniform-spam-words' => [
-        'enabled' => true, // enable the plugin, default true
-        'minLength' => 10, // the minimum length of the message, default null (disabled)
-        'maxLength' => 500, // the maximum length of the message, default null (disabled)
-        'minWords' => 3, // the minimum number of words in the message, default null (disabled)
-        'maxWords' => null, // the maximum number of words in the message, default null (disabled)
-        'regexMatch' => null, // the regex pattern to match against the message, default null (disabled)
-        'customValidator' => null, // custom validation callback, default null (disabled)
-        'minAddresses' => 0, // the minimum number of addresses like links and emails that are needed to check for spam, default 1
-        'addressThreshold' => 2, // the number of addresses like links and emails that are allowed, default 2
-        'spamThreshold' => 8, // the threshold for the spam score, default 8
-        'useWordLists' => true, // Use the default word lists, default true
-        'spamWords' => [ // define your own spam words, the key number defines the weight of the words
-            1 => ['promotion', 'free'], // weight 1, increases spam likelihood only a little
-            6 => ['seo', 'marketing'], // weight 6, increases spam likelihood a lot
-        ],
-        'silentReject' => false, // Reject spam without showing error messages (returns a space as error message), default false
-        'debug' => true, // Enable debug logging, default false
-        'debugLogFile' => 'site/logs/my_custom_logfile.log', // Path to debug log file, default null (uses Kirby's log directory)
-    ],
-];
-```
 
 ### Configuration Options
 
@@ -106,15 +89,34 @@ return [
 | `debug` | bool | `false` | Enable debug logging. Logs ALL validation attempts with reason, metrics, form data, checked fields, anonymized IP, and timestamp.                            |
 | `debugLogFile` | string\|null | `null`  | Path to debug log file. Defaults to `uniform-spam-words.log` in the kirby logs directory (e.g. `site/logs/uniform-spam-words.log`).                          |
 
-**How it works:**
-1. Validates regex pattern (if configured)
-2. Checks message length constraints
-3. Checks word count constraints
-4. Runs custom validator (if configured)
-5. If addresses found (>= minAddresses), calculates spam score from keywords
-6. Rejects if thresholds exceeded
 
 ### Common Use Cases
+
+#### Full Configuration Example
+```php
+return [
+    'tearoom1.uniform-spam-words' => [
+        'enabled' => true, // enable the plugin, default true
+        'minLength' => 10, // the minimum length of the message, default null (disabled)
+        'maxLength' => 500, // the maximum length of the message, default null (disabled)
+        'minWords' => 3, // the minimum number of words in the message, default null (disabled)
+        'maxWords' => null, // the maximum number of words in the message, default null (disabled)
+        'regexMatch' => null, // the regex pattern to match against the message, default null (disabled)
+        'customValidator' => null, // custom validation callback, default null (disabled)
+        'minAddresses' => 0, // the minimum number of addresses like links and emails that are needed to check for spam, default 1
+        'addressThreshold' => 2, // the number of addresses like links and emails that are allowed, default 2
+        'spamThreshold' => 8, // the threshold for the spam score, default 8
+        'useWordLists' => true, // Use the default word lists, default true
+        'spamWords' => [ // define your own spam words, the key number defines the weight of the words
+            1 => ['promotion', 'free'], // weight 1, increases spam likelihood only a little
+            6 => ['seo', 'marketing'], // weight 6, increases spam likelihood a lot
+        ],
+        'silentReject' => false, // Reject spam without showing error messages (returns a space as error message), default false
+        'debug' => true, // Enable debug logging, default false
+        'debugLogFile' => 'site/logs/my_custom_logfile.log', // Path to debug log file, default null (uses Kirby's log directory)
+    ],
+];
+```
 
 #### Contact Form with Basic Spam Protection
 ```php
