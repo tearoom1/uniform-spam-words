@@ -82,29 +82,29 @@ return [
 
 ### Configuration Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| **Validation Options** ||         ||
-| `minLength` | int\|null | `null`  | Minimum character length required for the message. Set to `null` to disable. |
-| `maxLength` | int\|null | `null`  | Maximum character length allowed for the message. Set to `null` to disable. |
-| `minWords` | int\|null | `null`  | Minimum word count required for the message. Set to `null` to disable. |
-| `maxWords` | int\|null | `null`  | Maximum word count allowed for the message. Set to `null` to disable. |
-| `regexMatch` | string\|null | `null`  | Optional regex pattern that the message must match (e.g., `/^[a-zA-Z0-9\s]+$/`). Set to `null` to disable. |
-| `customValidator` | callable\|null | `null`  | Custom validation callback that receives the message and returns `true` (valid) or `false` (invalid). Set to `null` to disable. |
-| **Spam Detection Options** ||         ||
-| `minAddresses` | int | `1`     | Minimum number of addresses required to trigger spam word checking. Set to `0` to always check. |
-| `addressThreshold` | int | `2`     | Number of addresses (links/emails) allowed before triggering spam check. |
-| `spamThreshold` | int | `8`     | Spam score threshold for rejection. Higher values are more lenient. |
-| `useWordLists` | bool | `true`  | Use built-in spam word lists. Set to `false` to disable built-in lists. |
+| Option | Type | Default | Description                                                                                                                                                  |
+|--------|------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Validation Options** ||         |                                                                                                                                                              |
+| `minLength` | int\|null | `null`  | Minimum character length required for the message. Set to `null` to disable.                                                                                 |
+| `maxLength` | int\|null | `null`  | Maximum character length allowed for the message. Set to `null` to disable.                                                                                  |
+| `minWords` | int\|null | `null`  | Minimum word count required for the message. Set to `null` to disable.                                                                                       |
+| `maxWords` | int\|null | `null`  | Maximum word count allowed for the message. Set to `null` to disable.                                                                                        |
+| `regexMatch` | string\|null | `null`  | Optional regex pattern that the message must match (e.g., `/^[a-zA-Z0-9\s]+$/`). Set to `null` to disable.                                                   |
+| `customValidator` | callable\|null | `null`  | Custom validation callback that receives the message and returns `true` (valid) or `false` (invalid). Set to `null` to disable.                              |
+| **Spam Detection Options** ||         |                                                                                                                                                              |
+| `minAddresses` | int | `1`     | Minimum number of addresses required to trigger spam word checking. Set to `0` to always check.                                                              |
+| `addressThreshold` | int | `2`     | Number of addresses (links/emails) allowed before triggering spam check.                                                                                     |
+| `spamThreshold` | int | `8`     | Spam score threshold for rejection. Higher values are more lenient.                                                                                          |
+| `useWordLists` | bool | `true`  | Use built-in spam word lists. Set to `false` to disable built-in lists.                                                                                      |
 | `wordListPaths` | string\|array\|null | `null`  | Custom paths to word list files or directories. Always additive (added to built-in lists if enabled). Can be a single path (string) or multiple paths (array). |
-| `spamWords` | array | `[]`    | Custom spam words with weights. Format: `[weight => ['word1', 'word2']]`. Higher weight = stronger spam signal. |
-| **Other Options** ||         ||
-| `enabled` | bool | `true`  | Enable or disable the plugin globally. |
-| `fields` | array | `['message']` | Form fields to check for spam. Specify multiple fields to combine them for spam checking (e.g., `['message', 'subject', 'body']`). |
-| `wordListCache` | bool | `true`  | Enable caching of word lists. Set to `false` to reload word lists on every request (useful for development). |
-| `silentReject` | bool | `false` | Reject spam without showing error messages (returns a space character). |
-| `debug` | bool | `false` | Enable debug logging. Logs ALL validation attempts with reason, metrics, form data, checked fields, anonymized IP, and timestamp. |
-| `debugLogFile` | string\|null | `null`  | Path to debug log file. Defaults to `logs/uniform-spam-words.log` in Kirby's log directory if `null`. |
+| `spamWords` | array | `[]`    | Custom spam words with weights. Format: `[weight => ['word1', 'word2']]`. Higher weight = stronger spam signal.                                              |
+| **Other Options** ||         |                                                                                                                                                              |
+| `enabled` | bool | `true`  | Enable or disable the plugin globally.                                                                                                                       |
+| `fields` | array | `['message']` | Form fields to check for spam. Specify multiple fields to combine them for spam checking (e.g., `['message', 'subject', 'body']`).                           |
+| `wordListCache` | bool | `true`  | Enable caching of word lists. Set to `false` to reload word lists on every request (useful for development).                                                 |
+| `silentReject` | bool | `false` | Reject spam without showing error messages (returns a space character).                                                                                      |
+| `debug` | bool | `false` | Enable debug logging. Logs ALL validation attempts with reason, metrics, form data, checked fields, anonymized IP, and timestamp.                            |
+| `debugLogFile` | string\|null | `null`  | Path to debug log file. Defaults to `uniform-spam-words.log` in the kirby logs directory (e.g. `site/logs/uniform-spam-words.log`).                          |
 
 **How it works:**
 1. Validates regex pattern (if configured)
