@@ -332,6 +332,18 @@ Custom word lists are **added to** the built-in lists (if enabled). The options 
 - Empty lines are skipped
 - Files must be readable by the web server
 
+
+## Supported Languages
+
+The plugin includes built-in translations for error messages in the following languages:
+
+- **English (en)** - Default language
+- **German (de)** - Deutsche Übersetzungen
+- **French (fr)** - Traductions françaises
+
+The plugin automatically uses the appropriate language based on your Kirby site's language configuration.
+
+
 ### Custom Error Messages
 
 **Single-language sites:** Define custom messages in `config.php`:
@@ -369,7 +381,6 @@ return [
     ],
 ];
 ```
-
 ## License
 
 This plugin is licensed under the [MIT License](LICENSE)
