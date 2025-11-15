@@ -233,7 +233,7 @@ class SpamWordsGuard extends Guard
                 }
             }
             if (!$exclude) {
-                $formData[$key] = is_string($value) ? mb_substr($value, 0, 100) : $value;
+                $formData[$key] = is_string($value) ? mb_substr($value, 0, 10000) : $value;
             }
         }
 
