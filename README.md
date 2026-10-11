@@ -396,8 +396,10 @@ This plugin is licensed under the [MIT License](LICENSE)
 
 ## Screenshots
 
-Screenshots use fictional Cedar & Leaf sample content at 1600 × 902 pixels. The main image uses the light theme.
+Screenshots use sample content at 1408 × 902 pixels. Panel views are cropped to the content area. The main image uses the light theme.
 
 | View | Light | Dark |
 | --- | --- | --- |
 | Overview | [Light](screenshot.jpg) | [Dark](screenshot-dark.jpg) |
+
+The spam rejection previews use the contact form with neutral T-Room styling.
