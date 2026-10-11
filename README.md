@@ -2,6 +2,9 @@
 
 This plugin implements a simple spam words guard for Martin Zurowietz' [`kirby-uniform`](https://github.com/mzur/kirby-uniform) plugin for Kirby.
 
+
+![Screenshot](screenshot.jpg)
+
 ## Getting started
 
 Use one of the following methods to install & use `tearoom1/uniform-spam-words`:
@@ -390,3 +393,11 @@ This plugin is licensed under the [MIT License](LICENSE)
 - Developed by Mathis Koblin
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://coff.ee/tearoom1)
+
+## Screenshots
+
+Screenshots use fictional Cedar & Leaf sample content at 1600 × 902 pixels. The main image uses the light theme.
+
+| View | Light | Dark |
+| --- | --- | --- |
+| Overview | [Light](screenshot.jpg) | [Dark](screenshot-dark.jpg) |
