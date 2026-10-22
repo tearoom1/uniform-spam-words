@@ -1,9 +1,8 @@
 # Spam Words Guard for Kirby Uniform
 
-This plugin implements a simple spam words guard for Martin Zurowietz' [`kirby-uniform`](https://github.com/mzur/kirby-uniform) plugin for Kirby.
+Spam protection for Martin Zurowietz' [Kirby Uniform](https://github.com/mzur/kirby-uniform). Weighted word lists and link counting decide the clear cases on your own server. For messages close to the threshold, an optional [AI check](#ai-check-optional) asks a decision model whether it is spam.
 
-
-![Screenshot](screenshot.jpg)
+![Two close calls: a genuine request delivered, a backlink offer rejected](card.png)
 
 ## Getting started
 
@@ -438,5 +437,6 @@ Screenshots use sample content at 1408 × 902 pixels. Panel views are cropped to
 | View | Light | Dark |
 | --- | --- | --- |
 | Overview | [Light](screenshot.jpg) | [Dark](screenshot-dark.jpg) |
+| AI check card (1680 × 840) | [Light](card.png) | |
 
 The spam rejection previews use the contact form with neutral T-Room styling.
