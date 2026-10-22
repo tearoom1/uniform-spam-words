@@ -1,3 +1,10 @@
+## [1.9.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.8.3...v1.9.0) (2026-10-22)
+
+
+### Features
+
+* optional AI check for close calls through OpenRouter decision models ([0bb636e](https://github.com/tearoom1/uniform-spam-words/commit/0bb636e18d23b967e29c767cafc9cd69d078f887))
+
 ## [1.8.3](https://github.com/tearoom1/uniform-spam-words/compare/v1.8.2...v1.8.3) (2025-11-15)
 
 
@@ -25,11 +32,4 @@
 ### Features
 
 * print spam score details in debug and added weight for addresses ([793d78d](https://github.com/tearoom1/uniform-spam-words/commit/793d78d38bad013db45ce9ad7bd643368452591d))
-
-## [1.7.1](https://github.com/tearoom1/uniform-spam-words/compare/v1.7.0...v1.7.1) (2025-11-13)
-
-
-### Bug Fixes
-
-* fixed double counts if spam words appear in different places ([8c2864b](https://github.com/tearoom1/uniform-spam-words/commit/8c2864b197769f048f60ac459ea9895339a3ac9a))
 
