@@ -131,6 +131,14 @@ class SpamWordsGuard extends Guard
     {
         $addressCount = $this->countAddresses($message);
         if ($addressCount < option('tearoom1.uniform-spam-words.minAddresses', 1)) {
+            // Without addresses there is no word score; only the "always" AI mode checks these
+            if ($this->aiMode() === 'always') {
+                $ai = $this->classifyWithAi($message);
+                $spamData = ['address_count' => $addressCount, 'ai' => $ai, 'form_data' => $formData];
+                if ($this->aiSaysSpam($ai)) {
+                    $this->rejectWithLog('rejected', $message, $spamData);
+                }
+            }
             return;
         }
 
@@ -146,7 +154,18 @@ class SpamWordsGuard extends Guard
         $addressScore = $addressCount * $addressesWeight;
         $totalScore = $addressScore + $spamScore;
 
-        $isSpam = $addressCount > $addressThreshold * 2 || $totalScore > $spamThreshold;
+        $tooManyAddresses = $addressCount > $addressThreshold * 2;
+        $isSpam = $tooManyAddresses || $totalScore > $spamThreshold;
+
+        // The AI decides close calls; too many addresses stay a hard rejection
+        $ai = null;
+        if (!$tooManyAddresses && $this->shouldAskAi($totalScore, $spamThreshold)) {
+            $ai = $this->classifyWithAi($message);
+            if ($ai['probability'] !== null) {
+                $isSpam = $this->aiSaysSpam($ai);
+            }
+        }
+
         $isSoftReject = !$isSpam && $addressCount > $addressThreshold;
 
         $spamData = [
@@ -162,6 +181,9 @@ class SpamWordsGuard extends Guard
             ],
             'form_data' => $formData,
         ];
+        if ($ai !== null) {
+            $spamData['ai'] = $ai;
+        }
 
         if ($isSpam) {
             $this->rejectWithLog('rejected', $message, $spamData);
@@ -173,6 +195,51 @@ class SpamWordsGuard extends Guard
         $this->attachSpamDataToForm('passed', $message, $spamData);
     }
 
+
+    /**
+     * AI mode: 'off' unless ai.enabled is set, then 'borderline' (default) or 'always'
+     */
+    private function aiMode(): string
+    {
+        if (!option('tearoom1.uniform-spam-words.ai.enabled', false)) {
+            return 'off';
+        }
+        return option('tearoom1.uniform-spam-words.ai.mode', 'borderline') === 'always' ? 'always' : 'borderline';
+    }
+
+    /**
+     * Ask the AI only when the word score is within ai.margin of the spam threshold
+     */
+    private function shouldAskAi(int|float $totalScore, int|float $spamThreshold): bool
+    {
+        return match ($this->aiMode()) {
+            'always' => true,
+            'borderline' => abs($totalScore - $spamThreshold) <= option('tearoom1.uniform-spam-words.ai.margin', 3),
+            default => false,
+        };
+    }
+
+    private function classifyWithAi(string $message): array
+    {
+        $check = new SpamAiCheck([
+            'apiKey' => option('tearoom1.uniform-spam-words.ai.apiKey'),
+            'model' => option('tearoom1.uniform-spam-words.ai.model', SpamAiCheck::DEFAULT_MODEL),
+            'endpoint' => option('tearoom1.uniform-spam-words.ai.endpoint', SpamAiCheck::DEFAULT_ENDPOINT),
+            'timeout' => option('tearoom1.uniform-spam-words.ai.timeout', 5),
+            'context' => option('tearoom1.uniform-spam-words.ai.context'),
+        ]);
+
+        return $check->classify($message);
+    }
+
+    /**
+     * A failed AI request never rejects a message
+     */
+    private function aiSaysSpam(array $ai): bool
+    {
+        return $ai['probability'] !== null
+            && $ai['probability'] >= option('tearoom1.uniform-spam-words.ai.threshold', 0.8);
+    }
 
     /**
      * Count email and link addresses in message

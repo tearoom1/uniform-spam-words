@@ -57,7 +57,8 @@ if ($kirby->request()->is('POST')) {
 3. Validates regex pattern (if configured)
 4. Runs custom validator (if configured)
 5. If addresses found (>= minAddresses), calculates spam score from keywords
-6. Rejects if thresholds exceeded
+6. Optional: asks an AI decision model about close calls (see [AI Check](#ai-check-optional))
+7. Rejects if thresholds exceeded
 
 ## Configuration
 
@@ -93,6 +94,16 @@ You may change certain options in your global `config.php`
 | `debug` | bool | `false` | Enable debug logging. Logs ALL validation attempts with reason, metrics, form data, checked fields, anonymized IP, and timestamp.                                                         |
 | `debugLogFile` | string\|null | `null`  | Path to debug log file. Defaults to `uniform-spam-words.log` in the kirby logs directory (e.g. `site/logs/uniform-spam-words.log`).                                                       |
 | `attachDebugInfo` | bool | `false` | Attach spam check data to Form object (accessible via `$form->data('spam_words_guard_info')`) for use in email templates. Be aware that by default all fields are sent in uniform emails. |
+| **AI Check Options** ||         | See [AI Check](#ai-check-optional).                                                                                                                                                     |
+| `ai.enabled` | bool | `false` | Ask an AI decision model about close calls.                                                                                                                                              |
+| `ai.apiKey` | string\|null | `null` | OpenRouter API key. Without it the AI check is skipped.                                                                                                                                 |
+| `ai.model` | string | `'typesafe/jev-1.14'` | Any OpenRouter decision model.                                                                                                                                                  |
+| `ai.endpoint` | string | `'https://openrouter.ai/api/alpha/decisions'` | Decisions API endpoint.                                                                                                                                 |
+| `ai.mode` | string | `'borderline'` | `'borderline'`: only messages whose score is within `ai.margin` of `spamThreshold`. `'always'`: every message, also those without links or emails.                                  |
+| `ai.margin` | int | `3` | Distance from `spamThreshold` that counts as a close call.                                                                                                                                   |
+| `ai.threshold` | float | `0.8` | Spam probability (0–1) from which a message is rejected.                                                                                                                                  |
+| `ai.timeout` | int | `5` | Seconds to wait before falling back to the word score.                                                                                                                                      |
+| `ai.context` | string\|null | `null` | Short description of the form, sent with the message, e.g. `'Contact form of a yoga studio in Munich'`.                                                                                |
 
 
 ### Message Rejection & Spam Score
@@ -259,6 +270,32 @@ return [
 **IP Anonymization (GDPR Compliant):**
 - IPv4: Last octet masked (e.g., `192.168.1.123` → `192.168.1.0`)
 - IPv6: Last 4 segments masked (e.g., `2001:db8:85a3:8d3:1319:8a2e:370:7348` → `2001:db8:85a3:8d3:0000:0000:0000:0000`)
+
+## AI Check (optional)
+
+Word lists are fast and free, but they misjudge messages close to the threshold. The AI check asks a decision model on [OpenRouter](https://openrouter.ai) whether such a message is spam. By default it uses [Jev](https://openrouter.ai/docs/guides/community/jev), which answers with a probability instead of text.
+
+```php
+return [
+    'tearoom1.uniform-spam-words' => [
+        'ai.enabled' => true,
+        'ai.apiKey' => 'sk-or-v1-YOUR-KEY',
+        'ai.context' => 'Contact form of a yoga studio in Munich',
+    ],
+];
+```
+
+**How it decides**
+
+- In the default `borderline` mode, only messages whose total score is within `ai.margin` of `spamThreshold` are sent. Clear cases are decided by the word score as before, so most messages never leave your server.
+- If the model says the spam probability is at least `ai.threshold`, the message is rejected; otherwise it passes. This works both ways: it catches spam just below the threshold and lets genuine messages just above it through.
+- More than twice `addressThreshold` links or emails are always rejected, without asking.
+- `always` mode sends every message, also those without links or emails, which the word score skips.
+- If the request fails, times out or no key is set, the word score decides as if the AI check were off. A failed request never rejects a message.
+
+**Cost and speed:** about 0.00002 USD and 0.3–0.5 seconds per checked message with Jev (measured October 2026; current prices on the [model page](https://openrouter.ai/typesafe/jev-1.14)). Other decision models work through the same API: set `ai.model`, then check `ai.threshold` again, because probabilities differ between models.
+
+**Privacy:** only the checked `fields` and `ai.context` are sent, never other form fields such as name or email. The message itself can still contain personal data, and it is processed by OpenRouter and the model provider. Mention this in your privacy policy before you enable the check. With `debug` on, the log shows the probability, model and cost of each request.
 
 ## Custom Word Lists
 

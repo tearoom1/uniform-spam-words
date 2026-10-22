@@ -13,6 +13,7 @@ load([
     'Uniform\\Guards\\SpamWordsGuard' => 'src/guards/SpamWordsGuard.php',
     'Uniform\\Guards\\SpamWordList' => 'src/guards/SpamWordList.php',
     'Uniform\\Guards\\SpamLogger' => 'src/guards/SpamLogger.php',
+    'Uniform\\Guards\\SpamAiCheck' => 'src/guards/SpamAiCheck.php',
 ], __DIR__);
 
 
@@ -40,6 +41,16 @@ $pluginOptions = [
     'debug' => false, // Enable debug logging to track spam scores, default false
     'debugLogFile' => null, // Path to debug log file, default null (uses Kirby's log directory)
     'attachDebugInfo' => false, // Attach spam check data to Form object for use in email templates, default false
+    // Optional AI check through the OpenRouter Decisions API, off by default
+    'ai.enabled' => false, // Ask a decision model about close calls, default false
+    'ai.apiKey' => null, // OpenRouter API key, required for the AI check
+    'ai.model' => 'typesafe/jev-1.14', // Any OpenRouter decision model, default Jev
+    'ai.endpoint' => 'https://openrouter.ai/api/alpha/decisions', // Decisions API endpoint
+    'ai.mode' => 'borderline', // 'borderline': only scores within ai.margin of spamThreshold; 'always': every message
+    'ai.margin' => 3, // Distance from spamThreshold that counts as a close call, default 3
+    'ai.threshold' => 0.8, // Spam probability from which a message is rejected, default 0.8
+    'ai.timeout' => 5, // Seconds to wait for the AI before falling back to the word score, default 5
+    'ai.context' => null, // Short description of the form, e.g. 'Contact form of a yoga studio in Munich'
     // Custom error messages for single-language sites
     'msg.rejected' => 'Message rejected as spam.',
     'msg.soft-reject' => 'Too many links or emails in the message body, please send an email instead.',
