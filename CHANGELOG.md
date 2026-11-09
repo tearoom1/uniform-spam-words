@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/tearoom1/uniform-spam-words/compare/v1.9.0...v1.9.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* register defaults as plugin options instead of extensions ([24a293e](https://github.com/tearoom1/uniform-spam-words/commit/24a293e73f766ae856f5ca6961d6e50f210d748b))
+
 ## [1.9.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.8.3...v1.9.0) (2026-10-22)
 
 
@@ -25,11 +32,4 @@
 ### Bug Fixes
 
 * remove trailing slash from path ([215880a](https://github.com/tearoom1/uniform-spam-words/commit/215880ad6042cbc7e51f05da1494f29efd8502df))
-
-## [1.8.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.7.1...v1.8.0) (2025-11-13)
-
-
-### Features
-
-* print spam score details in debug and added weight for addresses ([793d78d](https://github.com/tearoom1/uniform-spam-words/commit/793d78d38bad013db45ce9ad7bd643368452591d))
 
