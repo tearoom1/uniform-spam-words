@@ -62,12 +62,17 @@ $pluginOptions = [
     'msg.custom-validation-failed' => 'Message failed custom validation.',
 ];
 
+// Register the defaults as plugin options, not as extensions
+$extensions = [
+    'options' => $pluginOptions,
+];
+
 // Load translations only if languages are enabled
 if (Kirby::instance()->multilang()) {
-    $pluginOptions['translations'] = [
+    $extensions['translations'] = [
         'en' => require_once __DIR__ . '/i18n/en.php',
         'de' => require_once __DIR__ . '/i18n/de.php',
     ];
 }
 
-Kirby::plugin('tearoom1/uniform-spam-words', $pluginOptions);
+Kirby::plugin('tearoom1/uniform-spam-words', $extensions);
