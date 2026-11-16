@@ -1,3 +1,15 @@
+## [1.10.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.9.1...v1.10.0) (2026-11-16)
+
+
+### Features
+
+* template signals and phrases from current cold sales pitches ([d26bbd6](https://github.com/tearoom1/uniform-spam-words/commit/d26bbd6b63e2e35a1ae77bd4a55ad9d0ed5ac9e7))
+
+
+### Bug Fixes
+
+* refresh the cached word lists when the built-in lists change ([f4700a3](https://github.com/tearoom1/uniform-spam-words/commit/f4700a3306689974d598096312ae6b4a4ad5257d))
+
 ## [1.9.1](https://github.com/tearoom1/uniform-spam-words/compare/v1.9.0...v1.9.1) (2026-11-09)
 
 
@@ -25,11 +37,4 @@
 ### Bug Fixes
 
 * increase max character count in logs to 10000 [#10](https://github.com/tearoom1/uniform-spam-words/issues/10) ([831bc1c](https://github.com/tearoom1/uniform-spam-words/commit/831bc1cf1ed2b84786b8ed6b2ecd711557e7ad99))
-
-## [1.8.1](https://github.com/tearoom1/uniform-spam-words/compare/v1.8.0...v1.8.1) (2025-11-13)
-
-
-### Bug Fixes
-
-* remove trailing slash from path ([215880a](https://github.com/tearoom1/uniform-spam-words/commit/215880ad6042cbc7e51f05da1494f29efd8502df))
 
