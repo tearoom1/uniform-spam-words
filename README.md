@@ -55,7 +55,7 @@ if ($kirby->request()->is('POST')) {
 2. Checks word count constraints
 3. Validates regex pattern (if configured)
 4. Runs custom validator (if configured)
-5. If addresses found (>= minAddresses), calculates spam score from keywords
+5. If addresses found (>= minAddresses), calculates spam score from keywords and [template signals](#template-signals)
 6. Optional: asks an AI decision model about close calls (see [AI Check](#ai-check-optional))
 7. Rejects if thresholds exceeded
 
@@ -85,6 +85,9 @@ You may change certain options in your global `config.php`
 | `useWordLists` | bool | `true`  | Use built-in spam word lists. Set to `false` to disable built-in lists.                                                                                                                   |
 | `wordListPaths` | string\|array\|null | `null`  | Custom paths to word list files or directories. Always additive (added to built-in lists if enabled). Can be a single path (string) or multiple paths (array).                            |
 | `spamWords` | array | `[]`    | Custom spam words with weights. Format: `[weight => ['word1', 'word2']]`. Higher weight = stronger spam signal.                                                                           |
+| `signals.unsubscribeLink` | int | `6` | Weight of a link containing "unsubscribe" or "opt-out". `0` disables it. See [Template Signals](#template-signals). |
+| `signals.ownDomain` | int | `6` | Weight of a link to another site that carries this site's domain, e.g. `?d=your-site.com`. `0` disables it. |
+| `signals.hosts` | string\|array\|null | `null` | This site's hosts for `signals.ownDomain`. `null` uses the host of the site URL. Set it on multi-domain sites. |
 | **Other Options** ||         |                                                                                                                                                                                           |
 | `enabled` | bool | `true`  | Enable or disable the plugin globally.                                                                                                                                                    |
 | `fields` | array | `['message']` | Form fields to check for spam. Specify multiple fields to combine them for spam checking (e.g., `['message', 'subject', 'body']`).                                                        |
@@ -269,6 +272,15 @@ return [
 **IP Anonymization (GDPR Compliant):**
 - IPv4: Last octet masked (e.g., `192.168.1.123` → `192.168.1.0`)
 - IPv6: Last 4 segments masked (e.g., `2001:db8:85a3:8d3:1319:8a2e:370:7348` → `2001:db8:85a3:8d3:0000:0000:0000:0000`)
+
+## Template Signals
+
+Cold sales pitches often avoid classic spam words, but they are sent from a template and give themselves away in their links. Two signals add to the spam score:
+
+- **Unsubscribe link** (`signals.unsubscribeLink`, weight 6): a link with "unsubscribe" or "opt-out" in it. A visitor writing to you never adds one. The word alone, without a link, does not count.
+- **Your own domain in someone else's link** (`signals.ownDomain`, weight 6): a link like `https://sender.example/unsubscribe?d=your-site.com`, filled in for each recipient. Links to your own site don't count.
+
+Each signal counts once per message. Together they reject a message even without any spam words.
 
 ## AI Check (optional)
 

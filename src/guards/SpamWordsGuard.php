@@ -150,9 +150,13 @@ class SpamWordsGuard extends Guard
         $spamScore = $spamResult['score'];
         $matchedWords = $spamResult['matches'];
 
+        // Template signals like an unsubscribe link count on top of the words
+        $signalResult = (new SpamSignals())->calculateScore($message);
+        $signalScore = $signalResult['score'];
+
         // Calculate weighted address score
         $addressScore = $addressCount * $addressesWeight;
-        $totalScore = $addressScore + $spamScore;
+        $totalScore = $addressScore + $spamScore + $signalScore;
 
         $tooManyAddresses = $addressCount > $addressThreshold * 2;
         $isSpam = $tooManyAddresses || $totalScore > $spamThreshold;
@@ -173,8 +177,10 @@ class SpamWordsGuard extends Guard
             'addresses_weight' => $addressesWeight,
             'address_score' => $addressScore,
             'spam_score' => $spamScore,
+            'signal_score' => $signalScore,
             'total_score' => $totalScore,
             'matched_words' => $matchedWords,
+            'matched_signals' => $signalResult['matches'],
             'thresholds' => [
                 'spam' => $spamThreshold,
                 'address' => $addressThreshold,

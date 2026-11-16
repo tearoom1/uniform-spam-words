@@ -14,6 +14,7 @@ load([
     'Uniform\\Guards\\SpamWordList' => 'src/guards/SpamWordList.php',
     'Uniform\\Guards\\SpamLogger' => 'src/guards/SpamLogger.php',
     'Uniform\\Guards\\SpamAiCheck' => 'src/guards/SpamAiCheck.php',
+    'Uniform\\Guards\\SpamSignals' => 'src/guards/SpamSignals.php',
 ], __DIR__);
 
 
@@ -36,6 +37,9 @@ $pluginOptions = [
     'useWordLists' => true, // Use the built-in word lists, default true
     'wordListPaths' => null, // Custom paths to word list files or directories (always additive), default null
     'spamWords' => [], // define your own spam words, the key number defines the weight of the words
+    'signals.unsubscribeLink' => 6, // weight of a link with "unsubscribe" or "opt-out" in it, 0 disables, default 6
+    'signals.ownDomain' => 6, // weight of a link to another site that carries this site's domain, 0 disables, default 6
+    'signals.hosts' => null, // this site's hosts for the ownDomain signal, default null (host of the site URL)
     'customValidator' => null, // custom validation callback, receives message and returns bool, default null (disabled)
     'silentReject' => false, // Reject spam without showing error messages (returns a space as error message), default false
     'debug' => false, // Enable debug logging to track spam scores, default false
