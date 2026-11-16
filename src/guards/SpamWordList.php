@@ -16,18 +16,30 @@ class SpamWordList
 
         if ($useCache) {
             $cache = App::instance()->cache('uniform-spam-words');
-            $spamWords = $cache->get('wordlists');
+            $cacheKey = $this->cacheKey();
+            $spamWords = $cache->get($cacheKey);
         }
 
         if ($spamWords === null || !$useCache) {
             $spamWords = $this->loadWordListsFromFiles();
 
             if ($useCache) {
-                $cache->set('wordlists', $spamWords, 1440);
+                $cache->set($cacheKey, $spamWords, 1440);
             }
         }
 
         return $this->mergeConfigSpamWords($spamWords);
+    }
+
+    /**
+     * Cache key that changes with the built-in lists, so an update takes effect at once
+     */
+    private function cacheKey(): string
+    {
+        $files = glob(__DIR__ . '/lists/*.txt') ?: [];
+        $stamps = array_map(fn($file) => basename($file) . ':' . filemtime($file), $files);
+
+        return 'wordlists-' . md5(implode('|', $stamps));
     }
 
     /**
