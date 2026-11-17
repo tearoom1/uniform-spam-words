@@ -94,6 +94,8 @@ You may change certain options in your global `config.php`
 | `wordListCache` | bool | `true`  | Enable caching of word lists. Set to `false` to reload word lists on every request (useful for development).                                                                              |
 | `rateLimit.max` | int | `5` | Messages one visitor may send per window. `0` disables it. See [Rate Limit](#rate-limit). |
 | `rateLimit.minutes` | int | `60` | Length of the rate limit window in minutes. |
+| `rateLimit.byEmail` | bool | `false` | Also count per email address entered in the form, so a sender changing networks is still limited. |
+| `rateLimit.emailField` | string | `'email'` | Form field that holds the sender's email address. |
 | `silentReject` | bool | `false` | Reject spam without showing error messages (returns a space character).                                                                                                                   |
 | `debug` | bool | `false` | Enable debug logging. Logs ALL validation attempts with reason, metrics, form data, checked fields, anonymized IP, and timestamp.                                                         |
 | `debugLogFile` | string\|null | `null`  | Path to debug log file. Defaults to `uniform-spam-words.log` in the kirby logs directory (e.g. `site/logs/uniform-spam-words.log`).                                                       |
@@ -105,6 +107,7 @@ You may change certain options in your global `config.php`
 | `ai.endpoint` | string | `'https://openrouter.ai/api/alpha/decisions'` | Decisions API endpoint.                                                                                                                                 |
 | `ai.mode` | string | `'borderline'` | `'borderline'`: only messages whose score is within `ai.margin` of `spamThreshold`. `'always'`: every message, also those without links or emails.                                  |
 | `ai.margin` | int | `3` | Distance from `spamThreshold` that counts as a close call.                                                                                                                                   |
+| `ai.repeat` | bool | `false` | Also ask the AI about every message from a visitor who already sent one within the rate limit window, with or without links. See [AI Check](#ai-check-optional). |
 | `ai.threshold` | float | `0.8` | Spam probability (0–1) from which a message is rejected.                                                                                                                                  |
 | `ai.timeout` | int | `5` | Seconds to wait before falling back to the word score.                                                                                                                                      |
 | `ai.context` | string\|null | `null` | Short description of the form, sent with the message, e.g. `'Contact form of a yoga studio in Munich'`.                                                                                |
@@ -283,6 +286,7 @@ A visitor can send at most `rateLimit.max` messages (default 5) within `rateLimi
 - Visitors are told apart by IP address: IPv4 per address, IPv6 per /64 network, because IPv6 privacy addresses change within the same connection.
 - The IP is only stored as a hash in the plugin cache (`site/cache`) and expires with the window.
 - Set `rateLimit.max` to `0` to turn it off.
+- With `rateLimit.byEmail`, the entered email address counts as well, also stored as a hash. A visitor is stopped when either their IP or their email address reached the limit.
 
 ## Template Signals
 
@@ -310,6 +314,7 @@ return [
 **How it decides**
 
 - In the default `borderline` mode, only messages whose total score is within `ai.margin` of `spamThreshold` are sent. Clear cases are decided by the word score as before, so most messages never leave your server.
+- With `ai.repeat`, a visitor's second and later messages within the [rate limit](#rate-limit) window are also sent, even without links. This catches a flood of nonsense messages typed by hand without sending every first message to the AI. Here the AI can only reject: a message the word score already rejects stays rejected.
 - If the model says the spam probability is at least `ai.threshold`, the message is rejected; otherwise it passes. This works both ways: it catches spam just below the threshold and lets genuine messages just above it through.
 - More than twice `addressThreshold` links or emails are always rejected, without asking.
 - `always` mode sends every message, also those without links or emails, which the word score skips.

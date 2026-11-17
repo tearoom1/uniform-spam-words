@@ -10,6 +10,7 @@ class SpamWordsGuard extends Guard
 {
     private SpamLogger $logger;
     private SpamWordList $wordList;
+    private ?SpamRateLimit $rateLimit = null;
 
     public function __construct(Form $form, array $options = [])
     {
@@ -32,9 +33,9 @@ class SpamWordsGuard extends Guard
         $formData = $this->collectFormData($requestBody);
 
         // A visitor who already sent enough messages is stopped before any other check
-        $rateLimit = new SpamRateLimit();
-        if ($rateLimit->isExceeded()) {
-            $this->rejectWithLog('rate-limit', $message, $rateLimit->limitData() + [
+        $this->rateLimit = new SpamRateLimit();
+        if ($this->rateLimit->isExceeded()) {
+            $this->rejectWithLog('rate-limit', $message, $this->rateLimit->limitData() + [
                 'form_data' => $formData,
             ]);
         }
@@ -46,7 +47,7 @@ class SpamWordsGuard extends Guard
         $this->validateSpam($message, $formData);
 
         // Every check passed, so this message counts towards the limit
-        $rateLimit->hit();
+        $this->rateLimit->hit();
     }
 
     /**
@@ -142,8 +143,9 @@ class SpamWordsGuard extends Guard
     {
         $addressCount = $this->countAddresses($message);
         if ($addressCount < option('tearoom1.uniform-spam-words.minAddresses', 1)) {
-            // Without addresses there is no word score; only the "always" AI mode checks these
-            if ($this->aiMode() === 'always') {
+            // Without addresses there is no word score; only the "always" AI mode
+            // and repeat visitors (ai.repeat) are checked by the AI
+            if ($this->aiMode() === 'always' || $this->isRepeatVisitor()) {
                 $ai = $this->classifyWithAi($message);
                 $spamData = ['address_count' => $addressCount, 'ai' => $ai, 'form_data' => $formData];
                 if ($this->aiSaysSpam($ai)) {
@@ -179,6 +181,10 @@ class SpamWordsGuard extends Guard
             if ($ai['probability'] !== null) {
                 $isSpam = $this->aiSaysSpam($ai);
             }
+        } elseif (!$isSpam && !$tooManyAddresses && $this->isRepeatVisitor()) {
+            // A repeat visitor's message gets a second opinion, which can only reject
+            $ai = $this->classifyWithAi($message);
+            $isSpam = $this->aiSaysSpam($ai);
         }
 
         $isSoftReject = !$isSpam && $addressCount > $addressThreshold;
@@ -222,6 +228,18 @@ class SpamWordsGuard extends Guard
             return 'off';
         }
         return option('tearoom1.uniform-spam-words.ai.mode', 'borderline') === 'always' ? 'always' : 'borderline';
+    }
+
+    /**
+     * With ai.repeat, a visitor who already sent a message within the
+     * rate limit window is checked by the AI from their second message on
+     */
+    private function isRepeatVisitor(): bool
+    {
+        return $this->aiMode() !== 'off'
+            && option('tearoom1.uniform-spam-words.ai.repeat', false)
+            && $this->rateLimit !== null
+            && $this->rateLimit->count() >= 1;
     }
 
     /**

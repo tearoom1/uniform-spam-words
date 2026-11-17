@@ -10,6 +10,7 @@ use Kirby\Toolkit\Dir;
 use tests\TestCase;
 use Uniform\Exceptions\PerformerException;
 use Uniform\Form;
+use Uniform\Guards\SpamAiCheck;
 use Uniform\Guards\SpamWordsGuard;
 
 class SpamRateLimitTest extends TestCase
@@ -30,6 +31,7 @@ class SpamRateLimitTest extends TestCase
     {
         Dir::remove($this->cacheRoot);
         unset($_SERVER['REMOTE_ADDR']);
+        SpamAiCheck::$transport = null;
         parent::tearDown();
     }
 
@@ -105,6 +107,100 @@ class SpamRateLimitTest extends TestCase
         $this->sendTimes(8);
 
         $this->assertTrue(true);
+    }
+
+    public function testEmailLimitIsOffByDefault()
+    {
+        $_POST['email'] = 'info@example.org';
+        for ($i = 1; $i <= 6; $i++) {
+            $_SERVER['REMOTE_ADDR'] = '203.0.113.' . $i;
+            $this->perform();
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function testEmailLimitAcrossChangingIps()
+    {
+        $options = ['rateLimit.byEmail' => true];
+        for ($i = 1; $i <= 5; $i++) {
+            $_SERVER['REMOTE_ADDR'] = '203.0.113.' . $i;
+            $_POST['email'] = $i % 2 ? 'Info@Example.org' : ' info@example.org ';
+            $this->perform($options);
+        }
+
+        $_SERVER['REMOTE_ADDR'] = '203.0.113.99';
+        $this->expectException(PerformerException::class);
+        $this->perform($options);
+    }
+
+    public function testAiIsNotAskedForFirstMessage()
+    {
+        $this->fakeAi(0.99);
+
+        $this->perform($this->repeatOptions());
+
+        $this->assertSame(0, $this->aiRequests);
+    }
+
+    public function testAiRejectsSecondMessageOfRepeatVisitor()
+    {
+        $this->fakeAi(0.99);
+        $this->perform($this->repeatOptions());
+
+        $_POST['message'] = 'PI ORDNUNG FORMAT WATCH LAMM';
+        try {
+            $this->perform($this->repeatOptions());
+            $this->fail('Expected the AI to reject the second message');
+        } catch (PerformerException) {
+            $this->assertSame(1, $this->aiRequests);
+        }
+    }
+
+    public function testAiPassesGenuineSecondMessage()
+    {
+        $this->fakeAi(0.1);
+
+        $this->sendTimes(2, $this->repeatOptions());
+
+        $this->assertSame(1, $this->aiRequests);
+    }
+
+    public function testAiRepeatIsOffByDefault()
+    {
+        $this->fakeAi(0.99);
+
+        $this->sendTimes(2, ['ai.enabled' => true, 'ai.apiKey' => 'test-key']);
+
+        $this->assertSame(0, $this->aiRequests);
+    }
+
+    public function testAiCannotPassClearSpamOfRepeatVisitor()
+    {
+        $this->fakeAi(0.0);
+        $this->perform($this->repeatOptions());
+
+        $_POST['message'] = 'Unsubscribe: https://leads.example/unsubscribe?d=x.example Make money, act now, click here!';
+        $this->expectException(PerformerException::class);
+        $this->perform($this->repeatOptions());
+    }
+
+    private int $aiRequests = 0;
+
+    private function fakeAi(float $probability): void
+    {
+        SpamAiCheck::$transport = function () use ($probability) {
+            $this->aiRequests++;
+            return [200, json_encode([
+                'answers' => ['spam' => ['type' => 'noul', 'noul' => $probability]],
+                'usage' => ['input_tokens' => 120, 'output_tokens' => 10, 'cost' => 0.00001],
+            ])];
+        };
+    }
+
+    private function repeatOptions(): array
+    {
+        return ['ai.enabled' => true, 'ai.apiKey' => 'test-key', 'ai.repeat' => true];
     }
 
     private function sendTimes(int $times, array $options = []): void

@@ -6,25 +6,28 @@ use Kirby\Cms\App;
 
 /**
  * Limits how many messages one visitor can send within a time window.
- * Only messages that passed all checks count; the IP is stored as a hash.
+ * Only messages that passed all checks count. Visitors are told apart by
+ * IP and, optionally, by the email address they enter; both are stored as hashes.
  */
 class SpamRateLimit
 {
     private int $max;
     private int $minutes;
+    private array $keys;
 
     public function __construct()
     {
         $this->max = (int)option('tearoom1.uniform-spam-words.rateLimit.max', 5);
         $this->minutes = max(1, (int)option('tearoom1.uniform-spam-words.rateLimit.minutes', 60));
+        $this->keys = $this->keys();
     }
 
     /**
-     * Off when disabled or when the visitor has no IP to count by (e.g. CLI)
+     * Off when disabled or when there is nothing to count by (e.g. CLI without IP)
      */
     public function isEnabled(): bool
     {
-        return $this->max > 0 && !empty(App::instance()->visitor()->ip());
+        return $this->max > 0 && $this->keys !== [];
     }
 
     /**
@@ -32,13 +35,17 @@ class SpamRateLimit
      */
     public function isExceeded(): bool
     {
-        if (!$this->isEnabled()) {
-            return false;
-        }
+        return $this->isEnabled() && $this->count() >= $this->max;
+    }
 
-        $entry = $this->entry();
+    /**
+     * Messages this visitor sent within the window, by IP or email, whichever is higher
+     */
+    public function count(): int
+    {
+        $counts = array_map(fn($key) => $this->entry($key)['count'] ?? 0, $this->keys);
 
-        return $entry !== null && $entry['count'] >= $this->max;
+        return $counts === [] ? 0 : max($counts);
     }
 
     /**
@@ -50,11 +57,13 @@ class SpamRateLimit
             return;
         }
 
-        $entry = $this->entry() ?? ['count' => 0, 'until' => time() + $this->minutes * 60];
-        $entry['count']++;
+        foreach ($this->keys as $key) {
+            $entry = $this->entry($key) ?? ['count' => 0, 'until' => time() + $this->minutes * 60];
+            $entry['count']++;
 
-        $minutesLeft = (int)ceil(($entry['until'] - time()) / 60);
-        $this->cache()->set($this->key(), $entry, max(1, $minutesLeft));
+            $minutesLeft = (int)ceil(($entry['until'] - time()) / 60);
+            $this->cache()->set($key, $entry, max(1, $minutesLeft));
+        }
     }
 
     public function limitData(): array
@@ -68,11 +77,11 @@ class SpamRateLimit
     }
 
     /**
-     * The visitor's entry, or null when there is none or its window is over
+     * The entry for a key, or null when there is none or its window is over
      */
-    private function entry(): ?array
+    private function entry(string $key): ?array
     {
-        $entry = $this->cache()->get($this->key());
+        $entry = $this->cache()->get($key);
 
         if (!is_array($entry) || ($entry['until'] ?? 0) <= time()) {
             return null;
@@ -83,18 +92,35 @@ class SpamRateLimit
 
     /**
      * One key per IPv4 address and per IPv6 /64 network, since IPv6
-     * privacy addresses change within the same connection
+     * privacy addresses change within the same connection; with
+     * rateLimit.byEmail also one per entered email address
      */
-    private function key(): string
+    private function keys(): array
     {
-        $ip = App::instance()->visitor()->ip() ?? '';
+        $keys = [];
 
-        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
-            $packed = inet_pton($ip);
-            $ip = bin2hex(substr($packed, 0, 8)) . '::/64';
+        $ip = App::instance()->visitor()->ip() ?? '';
+        if ($ip !== '') {
+            if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+                $ip = bin2hex(substr(inet_pton($ip), 0, 8)) . '::/64';
+            }
+            $keys[] = $this->hashKey('ip', $ip);
         }
 
-        return 'rate-' . hash('sha256', $ip . '|' . App::instance()->root('index'));
+        if (option('tearoom1.uniform-spam-words.rateLimit.byEmail', false)) {
+            $field = option('tearoom1.uniform-spam-words.rateLimit.emailField', 'email');
+            $email = mb_strtolower(trim((string)App::instance()->request()->body()->get($field)));
+            if ($email !== '') {
+                $keys[] = $this->hashKey('email', $email);
+            }
+        }
+
+        return $keys;
+    }
+
+    private function hashKey(string $type, string $value): string
+    {
+        return 'rate-' . $type . '-' . hash('sha256', $value . '|' . App::instance()->root('index'));
     }
 
     private function cache(): \Kirby\Cache\Cache
