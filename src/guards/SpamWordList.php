@@ -15,7 +15,7 @@ class SpamWordList
         $spamWords = [];
 
         if ($useCache) {
-            $cache = App::instance()->cache('uniform-spam-words');
+            $cache = App::instance()->cache('tearoom1.uniform-spam-words');
             $cacheKey = $this->cacheKey();
             $spamWords = $cache->get($cacheKey);
         }
@@ -32,12 +32,20 @@ class SpamWordList
     }
 
     /**
-     * Cache key that changes with the built-in lists, so an update takes effect at once
+     * Cache key that changes with the lists and the list options,
+     * so an update or a config change takes effect at once
      */
     private function cacheKey(): string
     {
         $files = glob(__DIR__ . '/lists/*.txt') ?: [];
-        $stamps = array_map(fn($file) => basename($file) . ':' . filemtime($file), $files);
+
+        foreach ((array)option('tearoom1.uniform-spam-words.wordListPaths', []) as $path) {
+            $files = [...$files, ...(is_dir($path) ? (glob(rtrim($path, '/') . '/*.txt') ?: []) : [$path])];
+        }
+
+        // Content hashes, since a list edited within the same second keeps its mtime
+        $stamps = array_map(fn($file) => $file . ':' . (is_file($file) ? md5_file($file) : 0), $files);
+        $stamps[] = 'builtin:' . (option('tearoom1.uniform-spam-words.useWordLists', true) ? 1 : 0);
 
         return 'wordlists-' . md5(implode('|', $stamps));
     }
