@@ -15,6 +15,7 @@ load([
     'Uniform\\Guards\\SpamLogger' => 'src/guards/SpamLogger.php',
     'Uniform\\Guards\\SpamAiCheck' => 'src/guards/SpamAiCheck.php',
     'Uniform\\Guards\\SpamSignals' => 'src/guards/SpamSignals.php',
+    'Uniform\\Guards\\SpamRateLimit' => 'src/guards/SpamRateLimit.php',
 ], __DIR__);
 
 
@@ -24,7 +25,10 @@ use Kirby\Cms\App as Kirby;
 $pluginOptions = [
     'enabled' => true, // enable the plugin, default true
     'fields' => ['message'], // form fields to check for spam, default ['message']
+    'cache' => true, // plugin cache for word lists and the rate limit
     'wordListCache' => true, // enable caching of word lists, default true
+    'rateLimit.max' => 5, // messages one visitor (IP) may send per window, 0 disables, default 5
+    'rateLimit.minutes' => 60, // length of the rate limit window in minutes, default 60
     'addressThreshold' => 2, // the number of addresses like links and emails that are allowed, default 2
     'addressesWeight' => 1, // the weight multiplier for each address found (links/emails), default 1
     'spamThreshold' => 8, // the threshold for the spam score, default 8
@@ -64,6 +68,7 @@ $pluginOptions = [
     'msg.too-few-words' => 'Message contains too few words.',
     'msg.too-many-words' => 'Message contains too many words.',
     'msg.custom-validation-failed' => 'Message failed custom validation.',
+    'msg.rate-limit' => 'You have already sent us several messages. Please try again later or write to us by email.',
 ];
 
 // Register the defaults as plugin options, not as extensions

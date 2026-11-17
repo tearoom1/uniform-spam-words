@@ -92,6 +92,8 @@ You may change certain options in your global `config.php`
 | `enabled` | bool | `true`  | Enable or disable the plugin globally.                                                                                                                                                    |
 | `fields` | array | `['message']` | Form fields to check for spam. Specify multiple fields to combine them for spam checking (e.g., `['message', 'subject', 'body']`).                                                        |
 | `wordListCache` | bool | `true`  | Enable caching of word lists. Set to `false` to reload word lists on every request (useful for development).                                                                              |
+| `rateLimit.max` | int | `5` | Messages one visitor may send per window. `0` disables it. See [Rate Limit](#rate-limit). |
+| `rateLimit.minutes` | int | `60` | Length of the rate limit window in minutes. |
 | `silentReject` | bool | `false` | Reject spam without showing error messages (returns a space character).                                                                                                                   |
 | `debug` | bool | `false` | Enable debug logging. Logs ALL validation attempts with reason, metrics, form data, checked fields, anonymized IP, and timestamp.                                                         |
 | `debugLogFile` | string\|null | `null`  | Path to debug log file. Defaults to `uniform-spam-words.log` in the kirby logs directory (e.g. `site/logs/uniform-spam-words.log`).                                                       |
@@ -273,6 +275,15 @@ return [
 - IPv4: Last octet masked (e.g., `192.168.1.123` → `192.168.1.0`)
 - IPv6: Last 4 segments masked (e.g., `2001:db8:85a3:8d3:1319:8a2e:370:7348` → `2001:db8:85a3:8d3:0000:0000:0000:0000`)
 
+## Rate Limit
+
+A visitor can send at most `rateLimit.max` messages (default 5) within `rateLimit.minutes` (default 60). Further messages are rejected with the `rate-limit` message, which asks them to try again later or write an email.
+
+- Only messages that passed all checks of this guard count, so a visitor who mistypes or fails a check isn't locked out.
+- Visitors are told apart by IP address: IPv4 per address, IPv6 per /64 network, because IPv6 privacy addresses change within the same connection.
+- The IP is only stored as a hash in the plugin cache (`site/cache`) and expires with the window.
+- Set `rateLimit.max` to `0` to turn it off.
+
 ## Template Signals
 
 Cold sales pitches often avoid classic spam words, but they are sent from a template and give themselves away in their links. Two signals add to the spam score:
@@ -410,6 +421,7 @@ The plugin automatically uses the appropriate language based on your Kirby site'
       'too-few-words' => 'Message contains too few words.',
       'too-many-words' => 'Message contains too many words.',
       'custom-validation-failed' => 'Message failed custom validation.',
+      'rate-limit' => 'You have already sent us several messages. Please try again later or write to us by email.',
     ],
 ],
 ```
@@ -429,6 +441,7 @@ return [
         'tearoom1.uniform-spam-words.msg.too-few-words' => 'Message contains too few words.',
         'tearoom1.uniform-spam-words.msg.too-many-words' => 'Message contains too many words.',
         'tearoom1.uniform-spam-words.msg.custom-validation-failed' => 'Message failed custom validation.',
+        'tearoom1.uniform-spam-words.msg.rate-limit' => 'You have already sent us several messages. Please try again later or write to us by email.',
     ],
 ];
 ```

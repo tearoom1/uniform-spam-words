@@ -9,4 +9,5 @@ return [
     'tearoom1.uniform-spam-words.msg.too-many-words' => 'Die Nachricht enthält zu viele Wörter.',
     'tearoom1.uniform-spam-words.msg.regex-mismatch' => 'Die Nachricht entspricht nicht dem erforderlichen Muster.',
     'tearoom1.uniform-spam-words.msg.custom-validation-failed' => 'Die Nachricht erfüllt die Anforderungen nicht.',
+    'tearoom1.uniform-spam-words.msg.rate-limit' => 'Du hast uns gerade schon mehrere Nachrichten geschickt. Bitte versuche es später noch einmal oder schreib uns eine E-Mail.',
 ];

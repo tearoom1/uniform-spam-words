@@ -31,11 +31,22 @@ class SpamWordsGuard extends Guard
         $message = $this->collectMessage($requestBody);
         $formData = $this->collectFormData($requestBody);
 
+        // A visitor who already sent enough messages is stopped before any other check
+        $rateLimit = new SpamRateLimit();
+        if ($rateLimit->isExceeded()) {
+            $this->rejectWithLog('rate-limit', $message, $rateLimit->limitData() + [
+                'form_data' => $formData,
+            ]);
+        }
+
         $this->validateLength($message, $formData);
         $this->validateWordCount($message, $formData);
         $this->validateRegex($message, $formData);
         $this->validateCustom($message, $formData);
         $this->validateSpam($message, $formData);
+
+        // Every check passed, so this message counts towards the limit
+        $rateLimit->hit();
     }
 
     /**
@@ -357,7 +368,8 @@ class SpamWordsGuard extends Guard
             'too-long' => option('tearoom1.uniform-spam-words.msg.too-long', 'Message is too long.'),
             'too-few-words' => option('tearoom1.uniform-spam-words.msg.too-few-words', 'Message contains too few words.'),
             'too-many-words' => option('tearoom1.uniform-spam-words.msg.too-many-words', 'Message contains too many words.'),
-            'custom-validation-failed' => option('tearoom1.uniform-spam-words.msg.custom-validation-failed', 'Message failed custom validation.')
+            'custom-validation-failed' => option('tearoom1.uniform-spam-words.msg.custom-validation-failed', 'Message failed custom validation.'),
+            'rate-limit' => option('tearoom1.uniform-spam-words.msg.rate-limit', 'You have already sent us several messages. Please try again later or write to us by email.'),
         ];
 
         return $fallbacks[$key] ?? '';
