@@ -1,3 +1,16 @@
+## [1.11.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.10.0...v1.11.0) (2026-11-17)
+
+
+### Features
+
+* optional rate limit per email and AI check for repeat visitors ([6cb6596](https://github.com/tearoom1/uniform-spam-words/commit/6cb65961aeb826642f6d2a2b5f0e29edfebecaf0))
+* rate limit of 5 messages per visitor and hour ([be36256](https://github.com/tearoom1/uniform-spam-words/commit/be362564dc63faa6313b66db192b1d7b271dd347))
+
+
+### Bug Fixes
+
+* word list cache now actually caches and follows list option changes ([c3197af](https://github.com/tearoom1/uniform-spam-words/commit/c3197af586fa9188ef665ec3fd4c103e13627c7d))
+
 ## [1.10.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.9.1...v1.10.0) (2026-11-16)
 
 
@@ -30,11 +43,4 @@
 ### Bug Fixes
 
 * added french translation and missing messages [#11](https://github.com/tearoom1/uniform-spam-words/issues/11) ([a02d474](https://github.com/tearoom1/uniform-spam-words/commit/a02d4748f0613a50bcb764babfa13b63879b7319))
-
-## [1.8.2](https://github.com/tearoom1/uniform-spam-words/compare/v1.8.1...v1.8.2) (2025-11-15)
-
-
-### Bug Fixes
-
-* increase max character count in logs to 10000 [#10](https://github.com/tearoom1/uniform-spam-words/issues/10) ([831bc1c](https://github.com/tearoom1/uniform-spam-words/commit/831bc1cf1ed2b84786b8ed6b2ecd711557e7ad99))
 
