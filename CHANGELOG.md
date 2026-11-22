@@ -1,3 +1,10 @@
+## [1.11.1](https://github.com/tearoom1/uniform-spam-words/compare/v1.11.0...v1.11.1) (2026-11-22)
+
+
+### Bug Fixes
+
+* custom messages as a nested msg array in config.php take effect again ([1611888](https://github.com/tearoom1/uniform-spam-words/commit/16118880851a309c1d7caa08afbe02cbf27a610f)), closes [#12](https://github.com/tearoom1/uniform-spam-words/issues/12)
+
 ## [1.11.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.10.0...v1.11.0) (2026-11-17)
 
 
@@ -36,11 +43,4 @@
 ### Features
 
 * optional AI check for close calls through OpenRouter decision models ([0bb636e](https://github.com/tearoom1/uniform-spam-words/commit/0bb636e18d23b967e29c767cafc9cd69d078f887))
-
-## [1.8.3](https://github.com/tearoom1/uniform-spam-words/compare/v1.8.2...v1.8.3) (2025-11-15)
-
-
-### Bug Fixes
-
-* added french translation and missing messages [#11](https://github.com/tearoom1/uniform-spam-words/issues/11) ([a02d474](https://github.com/tearoom1/uniform-spam-words/commit/a02d4748f0613a50bcb764babfa13b63879b7319))
 
