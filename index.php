@@ -21,16 +21,20 @@ load([
 
 use Kirby\Cms\App as Kirby;
 
-// add default options
+// Default options. Groups are nested on purpose: Kirby then accepts both
+// notations in config.php, flat ('ai.enabled' => true) and nested
+// ('ai' => ['enabled' => true]). Flat defaults here would shadow nested values.
 $pluginOptions = [
     'enabled' => true, // enable the plugin, default true
     'fields' => ['message'], // form fields to check for spam, default ['message']
     'cache' => true, // plugin cache for word lists and the rate limit
     'wordListCache' => true, // enable caching of word lists, default true
-    'rateLimit.max' => 5, // messages one visitor (IP) may send per window, 0 disables, default 5
-    'rateLimit.minutes' => 60, // length of the rate limit window in minutes, default 60
-    'rateLimit.byEmail' => false, // also count per entered email address, default false
-    'rateLimit.emailField' => 'email', // form field with the sender's email address, default 'email'
+    'rateLimit' => [
+        'max' => 5, // messages one visitor (IP) may send per window, 0 disables, default 5
+        'minutes' => 60, // length of the rate limit window in minutes, default 60
+        'byEmail' => false, // also count per entered email address, default false
+        'emailField' => 'email', // form field with the sender's email address, default 'email'
+    ],
     'addressThreshold' => 2, // the number of addresses like links and emails that are allowed, default 2
     'addressesWeight' => 1, // the weight multiplier for each address found (links/emails), default 1
     'spamThreshold' => 8, // the threshold for the spam score, default 8
@@ -43,28 +47,41 @@ $pluginOptions = [
     'useWordLists' => true, // Use the built-in word lists, default true
     'wordListPaths' => null, // Custom paths to word list files or directories (always additive), default null
     'spamWords' => [], // define your own spam words, the key number defines the weight of the words
-    'signals.unsubscribeLink' => 6, // weight of a link with "unsubscribe" or "opt-out" in it, 0 disables, default 6
-    'signals.ownDomain' => 6, // weight of a link to another site that carries this site's domain, 0 disables, default 6
-    'signals.hosts' => null, // this site's hosts for the ownDomain signal, default null (host of the site URL)
+    'signals' => [
+        'unsubscribeLink' => 6, // weight of a link with "unsubscribe" or "opt-out" in it, 0 disables, default 6
+        'ownDomain' => 6, // weight of a link to another site that carries this site's domain, 0 disables, default 6
+        'hosts' => null, // this site's hosts for the ownDomain signal, default null (host of the site URL)
+    ],
     'customValidator' => null, // custom validation callback, receives message and returns bool, default null (disabled)
     'silentReject' => false, // Reject spam without showing error messages (returns a space as error message), default false
     'debug' => false, // Enable debug logging to track spam scores, default false
     'debugLogFile' => null, // Path to debug log file, default null (uses Kirby's log directory)
     'attachDebugInfo' => false, // Attach spam check data to Form object for use in email templates, default false
     // Optional AI check through the OpenRouter Decisions API, off by default
-    'ai.enabled' => false, // Ask a decision model about close calls, default false
-    'ai.apiKey' => null, // OpenRouter API key, required for the AI check
-    'ai.model' => 'typesafe/jev-1.14', // Any OpenRouter decision model, default Jev
-    'ai.endpoint' => 'https://openrouter.ai/api/alpha/decisions', // Decisions API endpoint
-    'ai.mode' => 'borderline', // 'borderline': only scores within ai.margin of spamThreshold; 'always': every message
-    'ai.repeat' => false, // also ask the AI from a visitor's second message within the rate limit window, default false
-    'ai.margin' => 3, // Distance from spamThreshold that counts as a close call, default 3
-    'ai.threshold' => 0.8, // Spam probability from which a message is rejected, default 0.8
-    'ai.timeout' => 5, // Seconds to wait for the AI before falling back to the word score, default 5
-    'ai.context' => null, // Short description of the form, e.g. 'Contact form of a yoga studio in Munich'
-    // Custom error messages ('msg' => [...]) have no defaults here: flat 'msg.*'
-    // defaults would shadow a nested 'msg' array in config.php. The English
-    // fallbacks live in SpamWordsGuard::getResultMessage().
+    'ai' => [
+        'enabled' => false, // Ask a decision model about close calls, default false
+        'apiKey' => null, // OpenRouter API key, required for the AI check
+        'model' => 'typesafe/jev-1.14', // Any OpenRouter decision model, default Jev
+        'endpoint' => 'https://openrouter.ai/api/alpha/decisions', // Decisions API endpoint
+        'mode' => 'borderline', // 'borderline': only scores within ai.margin of spamThreshold; 'always': every message
+        'repeat' => false, // also ask the AI from a visitor's second message within the rate limit window, default false
+        'margin' => 3, // Distance from spamThreshold that counts as a close call, default 3
+        'threshold' => 0.8, // Spam probability from which a message is rejected, default 0.8
+        'timeout' => 5, // Seconds to wait for the AI before falling back to the word score, default 5
+        'context' => null, // Short description of the form, e.g. 'Contact form of a yoga studio in Munich'
+    ],
+    // Custom error messages for single-language sites
+    'msg' => [
+        'rejected' => 'Message rejected as spam.',
+        'soft-reject' => 'Too many links or emails in the message body, please send an email instead.',
+        'regex-mismatch' => 'Message does not match the required pattern.',
+        'too-short' => 'Message is too short.',
+        'too-long' => 'Message is too long.',
+        'too-few-words' => 'Message contains too few words.',
+        'too-many-words' => 'Message contains too many words.',
+        'custom-validation-failed' => 'Message failed custom validation.',
+        'rate-limit' => 'You have already sent us several messages. Please try again later or write to us by email.',
+    ],
 ];
 
 // Register the defaults as plugin options, not as extensions

@@ -63,7 +63,7 @@ if ($kirby->request()->is('POST')) {
 
 The plugin comes with a few lists of words and phrases that are used to build a spam score. Thus the plugin should work out of the box.
 
-You may change certain options in your global `config.php`
+You may change certain options in your global `config.php`. Grouped options work in both notations, flat (`'ai.enabled' => true`) and nested (`'ai' => ['enabled' => true]`).
 
 
 ### Configuration Options
