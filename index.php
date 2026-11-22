@@ -62,16 +62,9 @@ $pluginOptions = [
     'ai.threshold' => 0.8, // Spam probability from which a message is rejected, default 0.8
     'ai.timeout' => 5, // Seconds to wait for the AI before falling back to the word score, default 5
     'ai.context' => null, // Short description of the form, e.g. 'Contact form of a yoga studio in Munich'
-    // Custom error messages for single-language sites
-    'msg.rejected' => 'Message rejected as spam.',
-    'msg.soft-reject' => 'Too many links or emails in the message body, please send an email instead.',
-    'msg.regex-mismatch' => 'Message does not match the required pattern.',
-    'msg.too-short' => 'Message is too short.',
-    'msg.too-long' => 'Message is too long.',
-    'msg.too-few-words' => 'Message contains too few words.',
-    'msg.too-many-words' => 'Message contains too many words.',
-    'msg.custom-validation-failed' => 'Message failed custom validation.',
-    'msg.rate-limit' => 'You have already sent us several messages. Please try again later or write to us by email.',
+    // Custom error messages ('msg' => [...]) have no defaults here: flat 'msg.*'
+    // defaults would shadow a nested 'msg' array in config.php. The English
+    // fallbacks live in SpamWordsGuard::getResultMessage().
 ];
 
 // Register the defaults as plugin options, not as extensions
