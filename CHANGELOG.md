@@ -1,3 +1,10 @@
+## [1.11.2](https://github.com/tearoom1/uniform-spam-words/compare/v1.11.1...v1.11.2) (2026-11-22)
+
+
+### Bug Fixes
+
+* grouped options work in flat and nested notation ([34a53c1](https://github.com/tearoom1/uniform-spam-words/commit/34a53c12f699cb6fe8915aebde80adb9bd089213))
+
 ## [1.11.1](https://github.com/tearoom1/uniform-spam-words/compare/v1.11.0...v1.11.1) (2026-11-22)
 
 
@@ -36,11 +43,4 @@
 ### Bug Fixes
 
 * register defaults as plugin options instead of extensions ([24a293e](https://github.com/tearoom1/uniform-spam-words/commit/24a293e73f766ae856f5ca6961d6e50f210d748b))
-
-## [1.9.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.8.3...v1.9.0) (2026-10-22)
-
-
-### Features
-
-* optional AI check for close calls through OpenRouter decision models ([0bb636e](https://github.com/tearoom1/uniform-spam-words/commit/0bb636e18d23b967e29c767cafc9cd69d078f887))
 
