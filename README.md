@@ -6,7 +6,12 @@ Spam protection for Martin Zurowietz' [Kirby Uniform](https://github.com/mzur/ki
 
 ## Requirements
 
-- Kirby 4.1, 5 or 6 (the PHP version your Kirby release requires)
+| Kirby | Plugin version | Branch |
+|---|---|---|
+| 6 | 1.12.0 or newer | `main` |
+| 4.1 and 5 | 1.x | `main` |
+
+- The PHP version your Kirby release requires
 - [Kirby Uniform](https://github.com/mzur/kirby-uniform) 5
 
 ## Getting started
@@ -34,7 +39,6 @@ composer require tearoom1/uniform-spam-words
 
 1. Clone or download this repository from github: https://github.com/tearoom1/uniform-spam-words.git
 2. Unzip / Move the folder to `site/plugins`.
-
 
 ## Usage
 
@@ -403,7 +407,6 @@ Custom word lists are **added to** the built-in lists (if enabled). The options 
 - Words are case-insensitive
 - Empty lines are skipped
 - Files must be readable by the web server
-
 
 ## Supported Languages
 
