@@ -1,3 +1,10 @@
+## [1.12.0](https://github.com/tearoom1/uniform-spam-words/compare/v1.11.2...v1.12.0) (2026-11-25)
+
+
+### Features
+
+* support Kirby 6 ([16d49ec](https://github.com/tearoom1/uniform-spam-words/commit/16d49ec05b23adf0dd528420991bd1f331eb3f0d))
+
 ## [1.11.2](https://github.com/tearoom1/uniform-spam-words/compare/v1.11.1...v1.11.2) (2026-11-22)
 
 
@@ -36,11 +43,4 @@
 ### Bug Fixes
 
 * refresh the cached word lists when the built-in lists change ([f4700a3](https://github.com/tearoom1/uniform-spam-words/commit/f4700a3306689974d598096312ae6b4a4ad5257d))
-
-## [1.9.1](https://github.com/tearoom1/uniform-spam-words/compare/v1.9.0...v1.9.1) (2026-11-09)
-
-
-### Bug Fixes
-
-* register defaults as plugin options instead of extensions ([24a293e](https://github.com/tearoom1/uniform-spam-words/commit/24a293e73f766ae856f5ca6961d6e50f210d748b))
 
