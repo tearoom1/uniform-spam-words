@@ -20,6 +20,10 @@ jobs:
         include:
           - php-versions: '8.4'
             kirby-versions: '^5.0'
+          - php-versions: '8.3'
+            kirby-versions: '^6.0'
+          - php-versions: '8.4'
+            kirby-versions: '^6.0'
 
     steps:
     - uses: actions/checkout@v7
@@ -43,6 +47,7 @@ jobs:
 
     - name: Install dependencies
       run: |
+        composer config platform.php ${{ matrix.php-versions }}
         composer require --dev "getkirby/cms:${{ matrix.kirby-versions }}" --no-update
         composer update --prefer-dist --no-progress
 
