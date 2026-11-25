@@ -4,6 +4,11 @@ Spam protection for Martin Zurowietz' [Kirby Uniform](https://github.com/mzur/ki
 
 ![Two close calls: a genuine request delivered, a backlink offer rejected](card.png)
 
+## Requirements
+
+- Kirby 4.1, 5 or 6 (the PHP version your Kirby release requires)
+- [Kirby Uniform](https://github.com/mzur/kirby-uniform) 5
+
 ## Getting started
 
 Use one of the following methods to install & use `tearoom1/uniform-spam-words`:
